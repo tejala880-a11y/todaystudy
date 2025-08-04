@@ -24,9 +24,14 @@
             <p class="text-slate-600 mt-2">A shared space for our daily goals and progress.</p>
         </header>
 
+        <div id="members-container" class="grid grid-cols-1 md:grid-cols-1 gap-8 mb-8"></div>
+        <div id="loader" class="text-center py-10">
+            <p>Loading members...</p>
+        </div>
+
         <div id="master-calendar-container" class="bg-white p-6 rounded-2xl shadow-lg mb-8"></div>
 
-        <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
             <h2 class="text-2xl font-semibold mb-4 text-slate-800">Add a New Member</h2>
             <div class="flex flex-col sm:flex-row gap-4">
                 <input type="text" id="new-member-name" placeholder="Enter your name" class="flex-grow p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
@@ -34,11 +39,6 @@
                     Add Me to the Group
                 </button>
             </div>
-        </div>
-
-        <div id="members-container" class="grid grid-cols-1 md:grid-cols-1 gap-8"></div>
-        <div id="loader" class="text-center py-10">
-            <p>Loading members...</p>
         </div>
     </div>
 
@@ -85,7 +85,6 @@
         
         // --- RENDER FUNCTIONS ---
         function renderApp() {
-            // 1. Aggregate data for the master calendar
             const tasksByDate = {};
             allMembersData.forEach(member => {
                 Object.keys(member.dailyTasks || {}).forEach(date => {
@@ -94,7 +93,6 @@
                 });
             });
 
-            // 2. Render components
             renderMasterCalendar(calendarDate.getFullYear(), calendarDate.getMonth(), tasksByDate);
             renderMembers(allMembersData);
         }
@@ -136,7 +134,11 @@
         function renderMembers(members) {
             membersContainer.innerHTML = '';
             if (members.length === 0) {
-                membersContainer.innerHTML = `<p class="text-center text-slate-500 col-span-1">No members yet.</p>`;
+                // If the loader is still visible, hide it. Otherwise, show no members message.
+                 if (loader.style.display !== 'none') {
+                     loader.style.display = 'none';
+                 }
+                 membersContainer.innerHTML = `<p class="text-center text-slate-500 col-span-1">No members yet. Be the first to join!</p>`
                 return;
             }
 
@@ -148,7 +150,6 @@
                 const selectedDate = memberViewStates[member.id] || TODAY_STRING;
                 const goalsForSelectedDate = (member.dailyTasks?.[selectedDate] || []).sort((a, b) => a.completed - b.completed);
 
-                // Progress Bar Calculation
                 const totalTasks = goalsForSelectedDate.length;
                 const completedTasks = goalsForSelectedDate.filter(g => g.completed).length;
                 const progressPercentage = totalTasks === 0 ? 0 : (completedTasks / totalTasks) * 100;
@@ -169,7 +170,7 @@
                 memberCard.innerHTML = `
                     <div class="flex justify-between items-start mb-4">
                         <h3 class="text-2xl font-bold text-indigo-700">${member.name}</h3>
-                        <button class="delete-member-btn text-slate-400 hover:text-red-600">&times;</button>
+                        <button class="delete-member-btn text-slate-400 hover:text-red-600 text-2xl font-bold">&times;</button>
                     </div>
 
                     <div class="flex items-center gap-2 mb-4">
@@ -210,7 +211,6 @@
             const dayCell = e.target.closest('.calendar-day');
             if (dayCell) {
                 const date = dayCell.dataset.date;
-                // Sync all member cards to the clicked date
                 allMembersData.forEach(member => { memberViewStates[member.id] = date; });
                 renderMembers(allMembersData);
             }
@@ -278,8 +278,10 @@
 
             addMemberBtn.addEventListener('click', () => {
                 const name = newMemberNameInput.value.trim();
-                if (name) addDoc(collection(db, 'members'), { name, dailyTasks: {}, createdAt: serverTimestamp() });
-                newMemberNameInput.value = '';
+                if (name) {
+                    addDoc(collection(db, 'members'), { name, dailyTasks: {}, createdAt: serverTimestamp() });
+                    newMemberNameInput.value = '';
+                }
             });
             masterCalendarContainer.addEventListener('click', handleCalendarEvents);
             membersContainer.addEventListener('click', handleMemberEvents);
