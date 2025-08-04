@@ -1,218 +1,257 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tejal's Study Group</title>
+    <title>Nidhi's Love Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Basic dark mode handling based on system preference
+        tailwind.config = {
+            darkMode: 'media',
+            theme: {
+                extend: {
+                    colors: {
+                        'love-pink': '#fecdd3',
+                        'love-red': '#f43f5e',
+                    },
+                },
+            },
+        }
+    </script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .goals-list::-webkit-scrollbar { width: 6px; }
-        .goals-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
-        .goals-list::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
-        .goals-list::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        .goal-item:hover .delete-goal-btn { opacity: 1; }
-        .spinner { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* Custom scrollbar for a cleaner look */
+        #messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        #messages-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .dark #messages-container::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        #messages-container::-webkit-scrollbar-thumb {
+            background: #fda4af;
+            border-radius: 4px;
+        }
+        .dark #messages-container::-webkit-scrollbar-thumb {
+            background: #9f1239;
+        }
+        #messages-container::-webkit-scrollbar-thumb:hover {
+            background: #f43f5e;
+        }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800">
-    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-bold text-slate-900">Tejal's Study Group</h1>
-            <p class="text-slate-600 mt-2">A shared space for our daily goals and progress.</p>
-        </header>
+<body class="flex flex-col h-screen bg-love-pink/20 dark:bg-gray-900 font-sans text-gray-800 dark:text-gray-200">
 
-        <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
-            <h2 class="text-2xl font-semibold mb-4 text-slate-800">Add a New Member</h2>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <input type="text" id="new-member-name" placeholder="Enter your name" class="flex-grow p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-                <button id="add-member-btn" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Add Me to the Group
-                </button>
-            </div>
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center border-b border-love-pink dark:border-gray-700 z-10">
+        <h1 class="text-xl font-bold text-love-red dark:text-love-pink">Nidhi's Love Chat ❤️</h1>
+        <div id="user-info" class="text-sm text-gray-500 dark:text-gray-400 hidden">
+            <span class="font-mono bg-gray-200 dark:bg-gray-700 p-1 rounded">
+               Your ID: <span id="user-id"></span>
+            </span>
         </div>
+    </header>
 
-        <div id="members-container" class="grid grid-cols-1 md:grid-cols-1 gap-8"></div>
-        <div id="loader" class="text-center py-10">
-            <p>Loading members...</p>
-        </div>
-    </div>
+    <!-- Status/Error Display -->
+    <div id="status-container" class="text-center p-3"></div>
 
+    <!-- Main Content: Messages Area -->
+    <main id="messages-container" class="flex-1 p-4 overflow-y-auto">
+        <!-- Messages will be dynamically inserted here -->
+    </main>
+
+    <!-- Message Input Form -->
+    <footer class="bg-white dark:bg-gray-800 p-4 border-t border-love-pink dark:border-gray-700">
+        <form id="message-form" class="flex items-center gap-3">
+            <input
+                id="message-input"
+                type="text"
+                placeholder="Type your message with love..."
+                class="flex-1 p-3 border rounded-full focus:ring-2 focus:ring-love-red focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                disabled
+            />
+            <button
+                id="send-button"
+                type="submit"
+                class="bg-love-red hover:bg-rose-600 text-white font-bold py-3 px-5 rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                disabled
+            >
+                <!-- Send Icon SVG -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </form>
+    </footer>
+
+    <!-- Firebase SDK -->
     <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import {
-            getFirestore,
-            collection,
-            onSnapshot,
-            addDoc,
-            doc,
-            getDoc,
-            updateDoc,
-            deleteDoc,
-            serverTimestamp
-        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // =================================================================
-        // ▼▼▼ PASTE YOUR *REAL* FIREBASE CONFIG OBJECT HERE ▼▼▼
+        // --- DOM Element References ---
+        const messagesContainer = document.getElementById('messages-container');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const statusContainer = document.getElementById('status-container');
+        const userInfo = document.getElementById('user-info');
+        const userIdSpan = document.getElementById('user-id');
+
+        let db, auth, currentUser;
+
+        // --- App ID and Firebase Config ---
+        const appId = "1:338420264881:web:c4119859174ab264709790";
+        // --- Firebase Configuration provided by user ---
         const firebaseConfig = {
             apiKey: "AIzaSyC8zXcbDNwdm2LMbpzV1KkN3wiTyh_vZ3M",
-  authDomain: "o-study-f5081.firebaseapp.com",
-  projectId: "o-study-f5081",
-  storageBucket: "o-study-f5081.firebasestorage.app",
-  messagingSenderId: "338420264881",
-  appId: "1:338420264881:web:c4119859174ab264709790",
-  measurementId: "G-8HCPGJ13MH"
+            authDomain: "o-study-f5081.firebaseapp.com",
+            projectId: "o-study-f5081",
+            storageBucket: "o-study-f5081.appspot.com", // Corrected storage bucket domain
+            messagingSenderId: "338420264881",
+            appId: "1:338420264881:web:c4119859174ab264709790",
+            measurementId: "G-8HCPGJ13MH"
         };
-        // ▲▲▲ PASTE YOUR *REAL* FIREBASE CONFIG OBJECT HERE ▲▲▲
-        // =================================================================
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
 
-        // --- DOM ELEMENTS ---
-        const addMemberBtn = document.getElementById('add-member-btn');
-        const newMemberNameInput = document.getElementById('new-member-name');
-        const membersContainer = document.getElementById('members-container');
-        const loader = document.getElementById('loader');
-
-        // --- RENDER FUNCTION ---
-        function renderMembers(members) {
-            membersContainer.innerHTML = '';
-            if (members.length === 0) {
-                membersContainer.innerHTML = `<p class="text-center text-slate-500 col-span-1">No members yet. Be the first to join!</p>`;
-                return;
-            }
-
-            members.forEach(member => {
-                const memberCard = document.createElement('div');
-                memberCard.className = 'bg-white p-6 rounded-2xl shadow-lg flex flex-col';
-                memberCard.setAttribute('data-id', member.id); // Firestore document ID
-
-                const goals = member.goals || [];
-                const sortedGoals = [...goals].sort((a, b) => a.completed - b.completed);
-                
-                const goalsHtml = sortedGoals.map(goal => `
-                    <div class="goal-item flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition group">
-                        <label class="flex items-center cursor-pointer flex-grow">
-                            <input type="checkbox" class="goal-checkbox h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300" data-goal-id="${goal.id}" ${goal.completed ? 'checked' : ''}>
-                            <span class="ml-3 text-slate-700 ${goal.completed ? 'line-through text-slate-400' : ''}">${goal.text}</span>
-                        </label>
-                        <button class="delete-goal-btn text-slate-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100" data-goal-id="${goal.id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
-                    </div>
-                `).join('');
-
-                memberCard.innerHTML = `
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-2xl font-bold text-indigo-700">${member.name}</h3>
-                        <button class="delete-member-btn text-slate-400 hover:text-red-600 transition">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                        </button>
-                    </div>
-                    <div class="goals-list space-y-2 pr-2 overflow-y-auto" style="max-height: 250px;">
-                        ${goalsHtml || '<p class="text-slate-400 p-3">No goals added yet.</p>'}
-                    </div>
-                    <div class="mt-4 pt-4 border-t border-slate-200 flex flex-col sm:flex-row gap-2">
-                        <input type="text" class="new-goal-input flex-grow p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Add a new goal...">
-                        <button class="add-goal-btn bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-800 transition">Add Goal</button>
-                    </div>`;
-                membersContainer.appendChild(memberCard);
-            });
-        }
+        // --- Helper function to format timestamp ---
+        const formatDate = (timestamp) => {
+            if (!timestamp) return 'Just now';
+            const date = timestamp.toDate();
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        };
         
-        // --- FIREBASE INTERACTIONS ---
-        async function handleAddMember() {
-            const name = newMemberNameInput.value.trim();
-            if (!name) return;
+        // --- Helper to show status/error messages ---
+        const showStatus = (message, isError = false) => {
+            statusContainer.textContent = message;
+            statusContainer.className = isError 
+                ? 'text-center text-red-500 bg-red-100 dark:bg-red-900 dark:text-red-300 p-3 rounded-lg' 
+                : 'text-center text-gray-500 dark:text-gray-400';
+        };
+
+        // --- Renders a single message to the DOM ---
+        const renderMessage = (msg) => {
+            const isCurrentUser = msg.userId === currentUser?.uid;
+            
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex items-end gap-2 my-2 ${isCurrentUser ? 'justify-end' : 'justify-start'}`;
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-lg shadow ${
+                isCurrentUser
+                    ? 'bg-love-red text-white rounded-br-none'
+                    : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'
+            }`;
+
+            const textP = document.createElement('p');
+            textP.className = 'text-sm break-words';
+            textP.textContent = msg.text;
+
+            const timeDiv = document.createElement('div');
+            timeDiv.className = `text-xs mt-1 opacity-70 ${isCurrentUser ? 'text-pink-200' : 'text-gray-500 dark:text-gray-400'}`;
+            timeDiv.textContent = formatDate(msg.createdAt);
+            
+            messageBubble.appendChild(textP);
+            messageBubble.appendChild(timeDiv);
+            messageWrapper.appendChild(messageBubble);
+            messagesContainer.appendChild(messageWrapper);
+
+            // Auto-scroll to the bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        };
+
+        // --- Main Initialization Function ---
+        const main = async () => {
+            showStatus('Initializing...');
 
             try {
-                await addDoc(collection(db, 'members'), {
-                    name: name,
-                    goals: [],
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                showStatus('Authenticating...');
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        userIdSpan.textContent = currentUser.uid;
+                        userInfo.classList.remove('hidden');
+                        messageInput.disabled = false;
+                        sendButton.disabled = false;
+                        showStatus('');
+                        listenForMessages();
+                    } else {
+                        try {
+                           await signInAnonymously(auth);
+                        } catch (authError) {
+                            console.error("Authentication Error:", authError);
+                            if (authError.code === 'auth/configuration-not-found') {
+                                showStatus("Authentication failed: 'Anonymous Sign-In' is not enabled. Please enable it in your Firebase Console (Authentication > Sign-in method).", true);
+                            } else {
+                                showStatus("Failed to authenticate. Please check your connection or Firebase setup.", true);
+                            }
+                        }
+                    }
+                });
+
+            } catch (e) {
+                console.error("Firebase Initialization Error:", e);
+                showStatus("Failed to initialize Firebase. Please check the configuration.", true);
+            }
+        };
+
+        // --- Real-time Message Listener ---
+        const listenForMessages = () => {
+            const messagesCollectionPath = `artifacts/${appId}/public/data/messages`;
+            const q = query(collection(db, messagesCollectionPath), orderBy('createdAt'));
+
+            onSnapshot(q, (querySnapshot) => {
+                messagesContainer.innerHTML = ''; // Clear existing messages
+                if (querySnapshot.empty) {
+                    showStatus('No messages yet. Be the first to say hello!');
+                } else {
+                    showStatus('');
+                }
+                querySnapshot.forEach(doc => {
+                    renderMessage({ id: doc.id, ...doc.data() });
+                });
+            }, (error) => {
+                console.error("Firestore Snapshot Error:", error);
+                showStatus("Failed to load messages. Please try again later.", true);
+            });
+        };
+
+        // --- Send Message Handler ---
+        messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageText = messageInput.value.trim();
+
+            if (messageText === '' || !currentUser || !db) return;
+
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+
+            try {
+                const messagesCollectionPath = `artifacts/${appId}/public/data/messages`;
+                await addDoc(collection(db, messagesCollectionPath), {
+                    text: messageText,
+                    userId: currentUser.uid,
                     createdAt: serverTimestamp()
                 });
-                newMemberNameInput.value = '';
-            } catch (e) {
-                console.error("Error adding member: ", e);
+                messageInput.value = '';
+            } catch (error) {
+                console.error("Error sending message:", error);
+                showStatus("Could not send the message.", true);
+            } finally {
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
             }
-        }
+        });
 
-        async function handleMemberEvents(e) {
-            const memberCard = e.target.closest('.bg-white[data-id]');
-            if (!memberCard) return;
-
-            const memberId = memberCard.dataset.id;
-            const memberDocRef = doc(db, 'members', memberId);
-
-            if (e.target.closest('.delete-member-btn')) {
-                if (confirm('Are you sure you want to remove this member?')) {
-                    await deleteDoc(memberDocRef);
-                }
-                return;
-            }
-
-            if (e.target.classList.contains('add-goal-btn')) {
-                const goalInput = memberCard.querySelector('.new-goal-input');
-                const goalText = goalInput.value.trim();
-                if (goalText) {
-                    const docSnap = await getDoc(memberDocRef);
-                    const currentGoals = docSnap.data().goals || [];
-                    const newGoal = { id: Date.now().toString(), text: goalText, completed: false };
-                    await updateDoc(memberDocRef, {
-                        goals: [...currentGoals, newGoal]
-                    });
-                    goalInput.value = '';
-                }
-                return;
-            }
-            
-            const goalId = e.target.closest('[data-goal-id]')?.dataset.goalId;
-            if (!goalId) return;
-            
-            const docSnap = await getDoc(memberDocRef);
-            const currentGoals = docSnap.data().goals || [];
-
-            if (e.target.classList.contains('goal-checkbox')) {
-                const updatedGoals = currentGoals.map(goal =>
-                    goal.id === goalId ? { ...goal, completed: e.target.checked } : goal
-                );
-                await updateDoc(memberDocRef, { goals: updatedGoals });
-            }
-
-            if (e.target.closest('.delete-goal-btn')) {
-                const filteredGoals = currentGoals.filter(goal => goal.id !== goalId);
-                await updateDoc(memberDocRef, { goals: filteredGoals });
-            }
-        }
-
-        // --- INITIALIZATION ---
-        function main() {
-            const membersCollection = collection(db, 'members');
-            onSnapshot(membersCollection, (querySnapshot) => {
-                loader.style.display = 'none';
-                const membersData = [];
-                querySnapshot.forEach((doc) => {
-                    membersData.push({ id: doc.id, ...doc.data() });
-                });
-                renderMembers(membersData);
-            }, (error) => {
-                console.error("Error listening to collection: ", error);
-                loader.innerHTML = "Error loading data. Check console and Firebase setup.";
-            });
-
-            addMemberBtn.addEventListener('click', handleAddMember);
-            newMemberNameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleAddMember();
-            });
-            membersContainer.addEventListener('click', handleMemberEvents);
-        }
-        
+        // --- Start the application ---
         main();
+
     </script>
 </body>
 </html>
