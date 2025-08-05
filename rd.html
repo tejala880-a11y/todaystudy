@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RadikaChat</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the chat application */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for a cleaner look */
+        #messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        #messages-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        #messages-container::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        #messages-container::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        /* New style for the chat background with a subtle paw pattern */
+        .chat-bg-pattern {
+            background-color: #f8fafc; /* A light grey fallback */
+            background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100"%3E%3Cpath d="M25 50 A12.5 12.5 0 1 1 25 75 A12.5 12.5 0 1 1 25 50 M50 50 A12.5 12.5 0 1 1 50 75 A12.5 12.5 0 1 1 50 50 M75 50 A12.5 12.5 0 1 1 75 75 A12.5 12.5 0 1 1 75 50 M50 25 A25 25 0 1 1 50 25" fill="%23e2e8f0"/%3E%3C/svg%3E');
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center h-screen">
+
+    <div id="app-container" class="w-full max-w-2xl h-full md:h-[90vh] md:max-h-[700px] bg-white rounded-lg shadow-2xl flex flex-col">
+
+        <!-- Login View -->
+        <div id="login-view" class="flex flex-col items-center justify-center h-full p-8 text-center">
+            <!-- Dog picture added to the login screen -->
+            <img src="https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?q=80&w=250&auto=format&fit=crop" 
+                 alt="A cute dog wearing glasses" 
+                 class="w-40 h-40 object-cover rounded-full mb-6 shadow-lg"
+                 onerror="this.onerror=null;this.src='https://placehold.co/150x150/e2e8f0/64748b?text=🐶';">
+            <h1 class="text-4xl font-bold text-slate-800 mb-2">Welcome to RadikaChat</h1>
+            <p class="text-slate-500 mb-8">Connect and chat in real-time.</p>
+            <button id="login-button" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors shadow-md">
+                Sign In to Chat
+            </button>
+        </div>
+
+        <!-- Chat View -->
+        <div id="chat-view" class="hidden flex-1 flex-col">
+            <!-- Header -->
+            <header class="bg-slate-800 text-white p-4 rounded-t-lg shadow-md flex justify-between items-center">
+                <h1 class="text-2xl font-bold">RadikaChat</h1>
+                <div class="text-right">
+                     <p class="text-xs text-slate-300">Your User ID:</p>
+                     <p id="user-id-display" class="text-sm font-mono select-all"></p>
+                </div>
+            </header>
+
+            <!-- Messages Container with new background -->
+            <main id="messages-container" class="flex-1 p-4 overflow-y-auto chat-bg-pattern">
+                <!-- Messages will be dynamically added here -->
+            </main>
+
+            <!-- Message Input Form -->
+            <footer class="p-4 bg-white border-t border-slate-200 rounded-b-lg">
+                <form id="message-form" class="flex items-center space-x-3">
+                    <input id="message-input" type="text" placeholder="Type your message..." autocomplete="off" class="flex-1 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                    <button type="submit" class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:bg-slate-400 disabled:cursor-not-allowed">
+                        Send
+                    </button>
+                </form>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import necessary functions from Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Configuration ---
+        // Use the provided config, but also check for the global variable for robustness.
+        const firebaseConfigFromPrompt = {
+            apiKey: "AIzaSyC8zXcbDNwdm2LMbpzV1KkN3wiTyh_vZ3M",
+            authDomain: "o-study-f5081.firebaseapp.com",
+            projectId: "o-study-f5081",
+            storageBucket: "o-study-f5081.firebasestorage.app",
+            messagingSenderId: "338420264881",
+            appId: "1:338420264881:web:c4119859174ab264709790",
+            measurementId: "G-8HCPGJ13MH"
+        };
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfigFromPrompt;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-radikachat';
+
+        // --- App Initialization ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        setLogLevel('debug'); // Enable debug logging for Firestore
+
+        // --- DOM Element References ---
+        const loginView = document.getElementById('login-view');
+        const chatView = document.getElementById('chat-view');
+        const loginButton = document.getElementById('login-button');
+        const messagesContainer = document.getElementById('messages-container');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const userIdDisplay = document.getElementById('user-id-display');
+
+        let currentUserId = null;
+        let messagesUnsubscribe = null; // To hold the listener cleanup function
+
+        // --- Authentication Logic ---
+        loginButton.addEventListener('click', async () => {
+            try {
+                // Check for a custom token provided by the environment first.
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                    console.log("Signed in with custom token.");
+                } else {
+                    // Fallback to anonymous sign-in.
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously.");
+                }
+            } catch (error) {
+                console.error("Authentication failed:", error);
+                // You could show an error message to the user here.
+            }
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in.
+                currentUserId = user.uid;
+                userIdDisplay.textContent = currentUserId;
+                loginView.style.display = 'none';
+                chatView.style.display = 'flex';
+                listenForMessages();
+            } else {
+                // User is signed out.
+                currentUserId = null;
+                loginView.style.display = 'flex';
+                chatView.style.display = 'none';
+                // If we have an active listener, detach it.
+                if (messagesUnsubscribe) {
+                    messagesUnsubscribe();
+                }
+            }
+        });
+
+        // --- Firestore Logic ---
+
+        /**
+         * Listens for real-time updates to the messages collection.
+         */
+        function listenForMessages() {
+            // Path to the public collection for this app instance
+            const messagesCollectionPath = `artifacts/${appId}/public/data/messages`;
+            const q = query(collection(db, messagesCollectionPath));
+
+            messagesUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                const messages = [];
+                querySnapshot.forEach((doc) => {
+                    messages.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Sort messages by timestamp client-side to avoid needing a composite index
+                messages.sort((a, b) => {
+                    const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
+                    const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+                    return timeA - timeB;
+                });
+
+                displayMessages(messages);
+            }, (error) => {
+                console.error("Error listening to messages:", error);
+            });
+        }
+
+        /**
+         * Renders messages to the DOM.
+         * @param {Array} messages - An array of message objects.
+         */
+        function displayMessages(messages) {
+            messagesContainer.innerHTML = ''; // Clear existing messages
+            messages.forEach(msg => {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('mb-3', 'p-3', 'rounded-lg', 'max-w-xs', 'md:max-w-md', 'break-words');
+
+                const isCurrentUser = msg.uid === currentUserId;
+
+                // Style messages based on the sender
+                if (isCurrentUser) {
+                    messageElement.classList.add('bg-blue-600', 'text-white', 'ml-auto');
+                } else {
+                    messageElement.classList.add('bg-slate-200', 'text-slate-800', 'mr-auto');
+                }
+
+                // Format timestamp for display
+                const timestamp = msg.createdAt ? new Date(msg.createdAt.toMillis()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                
+                // Create message content
+                messageElement.innerHTML = `
+                    <p class="text-sm">${msg.text}</p>
+                    <p class="text-xs mt-1 opacity-70 text-right">${timestamp}</p>
+                `;
+
+                messagesContainer.appendChild(messageElement);
+            });
+
+            // Scroll to the bottom to show the latest message
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        /**
+         * Handles the message form submission.
+         */
+        messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageText = messageInput.value.trim();
+
+            if (messageText && currentUserId) {
+                const messagesCollectionPath = `artifacts/${appId}/public/data/messages`;
+                try {
+                    // Add a new document with a generated id.
+                    await addDoc(collection(db, messagesCollectionPath), {
+                        text: messageText,
+                        uid: currentUserId,
+                        createdAt: serverTimestamp() // Use server time for consistency
+                    });
+                    // Clear the input field after sending
+                    messageInput.value = '';
+                } catch (error) {
+                    console.error("Error sending message: ", error);
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
