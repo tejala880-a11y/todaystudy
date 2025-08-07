@@ -12,7 +12,7 @@
         .goals-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
         .goals-list::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
         .goals-list::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        /* Removed .goal-item:hover .goal-actions rule as it's no longer needed */
+        .goal-item:hover .delete-goal-btn { opacity: 1; }
         .calendar-day.has-tasks { background-color: #e0e7ff; }
         .calendar-day.is-today { box-shadow: 0 0 0 2px #4f46e5; }
     </style>
@@ -46,7 +46,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import {
             getFirestore, collection, onSnapshot, addDoc, doc,
-            updateDoc, deleteDoc, serverTimestamp, arrayUnion, runTransaction, Timestamp
+            updateDoc, deleteDoc, serverTimestamp, arrayUnion, runTransaction
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // =================================================================
@@ -54,7 +54,7 @@
             apiKey: "AIzaSyC8zXcbDNwdm2LMbpzV1KkN3wiTyh_vZ3M",
             authDomain: "o-study-f5081.firebaseapp.com",
             projectId: "o-study-f5081",
-            storageBucket: "o-study-f5081.firebasestorage.app",
+            storageBucket: "o-study-f5081.appspot.com",
             messagingSenderId: "338420264881",
             appId: "1:338420264881:web:c4119859174ab264709790",
             measurementId: "G-8HCPGJ13MH"
@@ -75,16 +75,25 @@
             return adjustedDate.toISOString().split('T')[0];
         }
 
-        function formatDuration(seconds) {
-            if (!seconds || seconds <= 0) return "";
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = Math.floor(seconds % 60);
-            let parts = [];
-            if (h > 0) parts.push(`${h}h`);
-            if (m > 0) parts.push(`${m}m`);
-            if (s > 0) parts.push(`${s}s`);
-            return `(${parts.join(' ')})`;
+        function formatDuration(start, end) {
+            if (!start || !end) return '';
+            const startMillis = start.seconds * 1000 + (start.nanoseconds || 0) / 1000000;
+            const endMillis = end.seconds * 1000 + (end.nanoseconds || 0) / 1000000;
+            let diff = Math.abs(endMillis - startMillis) / 1000; // seconds
+
+            if (diff < 1) return "< 1s";
+
+            const h = Math.floor(diff / 3600);
+            diff %= 3600;
+            const m = Math.floor(diff / 60);
+            const s = Math.floor(diff % 60);
+
+            let result = '';
+            if (h > 0) result += `${h}h `;
+            if (m > 0) result += `${m}m `;
+            if (s > 0 || (h === 0 && m === 0)) result += `${s}s`;
+            
+            return result.trim();
         }
 
         const TODAY_STRING = getLocalDateString(new Date());
@@ -147,10 +156,10 @@
         function renderMembers(members) {
             membersContainer.innerHTML = '';
             if (members.length === 0) {
-                 if (loader.style.display !== 'none') {
-                     loader.style.display = 'none';
-                 }
-                 membersContainer.innerHTML = `<p class="text-center text-slate-500 col-span-1">No members yet. Be the first to join!</p>`
+                if (loader.style.display !== 'none') {
+                    loader.style.display = 'none';
+                }
+                membersContainer.innerHTML = `<p class="text-center text-slate-500 col-span-1">No members yet. Be the first to join!</p>`
                 return;
             }
 
@@ -160,7 +169,18 @@
                 memberCard.setAttribute('data-id', member.id);
 
                 const selectedDate = memberViewStates[member.id] || TODAY_STRING;
-                const goalsForSelectedDate = (member.dailyTasks?.[selectedDate] || []).sort((a, b) => a.completed - b.completed);
+                
+                const goalsForSelectedDate = (member.dailyTasks?.[selectedDate] || []).sort((a, b) => {
+                    // Completed tasks go to the bottom
+                    if (a.completed && !b.completed) return 1;
+                    if (!a.completed && b.completed) return -1;
+                    // For incomplete tasks, started ones go first
+                    if (!a.completed) {
+                        if (a.startTime && !b.startTime) return -1;
+                        if (!a.startTime && b.startTime) return 1;
+                    }
+                    return 0; // Keep original order otherwise
+                });
 
                 const totalTasks = goalsForSelectedDate.length;
                 const completedTasks = goalsForSelectedDate.filter(g => g.completed).length;
@@ -168,31 +188,31 @@
 
                 const goalsHtml = totalTasks > 0
                     ? goalsForSelectedDate.map(goal => {
+                        const isCompleted = goal.completed;
                         const isStarted = !!goal.startTime;
-                        const timeTakenDisplay = goal.completed && goal.timeTaken ? `<span class="text-xs text-indigo-500 ml-2 font-medium">${formatDuration(goal.timeTaken)}</span>` : '';
-                        
-                        const startButtonHtml = !isStarted && !goal.completed ? `
-                            <button class="start-goal-btn text-slate-400 opacity-60 hover:opacity-100 hover:text-green-500 transition-all">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                            </button>` : `<div class="w-[20px]"></div>`;
+                        const timeTaken = isCompleted ? formatDuration(goal.startTime, goal.completedAt) : '';
+
+                        let actionButtonHtml = '';
+                        if (!isStarted) {
+                            actionButtonHtml = `<button class="start-goal-btn text-xs font-semibold bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600">Start</button>`;
+                        } else if (!isCompleted) {
+                            actionButtonHtml = `<button class="complete-goal-btn text-xs font-semibold bg-blue-500 text-white py-1 px-3 rounded-md hover:bg-blue-600">Complete</button>`;
+                        }
 
                         return `
-                        <div class="goal-item flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition" data-goal-id="${goal.id}" data-goal-date="${selectedDate}">
-                            <label class="flex items-center cursor-pointer flex-grow">
-                                <input type="checkbox" class="goal-checkbox h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500" 
-                                    ${goal.completed ? 'checked' : ''} 
-                                    ${!isStarted ? 'disabled' : ''}
-                                >
-                                <span class="ml-3 text-slate-700 ${goal.completed ? 'line-through text-slate-400' : ''}">${goal.text}</span>
-                                ${timeTakenDisplay}
-                            </label>
-                            <div class="goal-actions flex items-center gap-2">
-                                ${startButtonHtml}
-                                <button class="delete-goal-btn text-slate-400 opacity-60 hover:opacity-100 hover:text-red-500 transition-all">
+                        <div class="goal-item flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition group" data-goal-id="${goal.id}" data-goal-date="${selectedDate}">
+                            <div class="flex-grow mr-4">
+                                <p class="text-slate-700 ${isCompleted ? 'line-through text-slate-400' : ''}">${goal.text}</p>
+                                ${isCompleted ? `<small class="text-green-600">Completed in: ${timeTaken}</small>` : ''}
+                                ${isStarted && !isCompleted ? `<small class="text-blue-600">In Progress...</small>` : ''}
+                            </div>
+                            <div class="flex items-center space-x-2 flex-shrink-0">
+                                ${actionButtonHtml}
+                                <button class="delete-goal-btn text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                 </button>
                             </div>
-                        </div>`
+                        </div>`;
                     }).join('')
                     : `<p class="text-slate-400 p-3">No goals for ${selectedDate}.</p>`;
 
@@ -269,9 +289,8 @@
                         id: self.crypto.randomUUID(), 
                         text, 
                         completed: false, 
-                        startTime: null,
-                        endTime: null,
-                        timeTaken: null
+                        startTime: null, 
+                        completedAt: null 
                     };
                     await updateDoc(memberDocRef, { [`dailyTasks.${date}`]: arrayUnion(newGoal) });
                     memberCard.querySelector('.new-goal-input').value = '';
@@ -284,52 +303,24 @@
             const { goalId, goalDate } = goalItem.dataset;
 
             try {
-                 await runTransaction(db, async (transaction) => {
+                await runTransaction(db, async (transaction) => {
                     const memberDoc = await transaction.get(memberDocRef);
                     if (!memberDoc.exists()) throw "Doc does not exist!";
                     
                     const tasks = memberDoc.data().dailyTasks || {};
                     const currentGoals = tasks[goalDate] || [];
-                    const targetGoal = currentGoals.find(g => g.id === goalId);
-                    if (!targetGoal) return;
-
                     let updatedGoals;
 
-                    // MODIFIED: Made the click detection for checkbox more robust, consistent with buttons.
-                    const deleteBtn = e.target.closest('.delete-goal-btn');
-                    const startBtn = e.target.closest('.start-goal-btn');
-                    const checkbox = e.target.closest('.goal-checkbox');
-
-                    if (deleteBtn) {
-                       updatedGoals = currentGoals.filter(g => g.id !== goalId);
-                    } else if (startBtn) {
-                        updatedGoals = currentGoals.map(g => 
-                            g.id === goalId ? { ...g, startTime: serverTimestamp() } : g
-                        );
-                    } else if (checkbox) {
-                        if (checkbox.checked) {
-                            const startTime = targetGoal.startTime.toDate();
-                            const endTime = new Date();
-                            const durationSeconds = Math.round((endTime.getTime() - startTime.getTime()) / 1000);
-                            
-                            updatedGoals = currentGoals.map(g => g.id === goalId ? { 
-                                ...g, 
-                                completed: true, 
-                                endTime: Timestamp.fromDate(endTime),
-                                timeTaken: durationSeconds 
-                            } : g);
-                        } else {
-                             updatedGoals = currentGoals.map(g => g.id === goalId ? { 
-                                ...g, 
-                                completed: false, 
-                                endTime: null, 
-                                timeTaken: null 
-                            } : g);
-                        }
-                    } else { 
-                        return; 
+                    if (e.target.closest('.delete-goal-btn')) {
+                        updatedGoals = currentGoals.filter(g => g.id !== goalId);
+                    } else if (e.target.closest('.start-goal-btn')) {
+                        updatedGoals = currentGoals.map(g => g.id === goalId ? { ...g, startTime: serverTimestamp() } : g);
+                    } else if (e.target.closest('.complete-goal-btn')) {
+                         updatedGoals = currentGoals.map(g => g.id === goalId ? { ...g, completed: true, completedAt: serverTimestamp() } : g);
+                    } else {
+                        return; // Exit if not a relevant button
                     }
-
+                    
                     tasks[goalDate] = updatedGoals;
                     transaction.update(memberDocRef, { dailyTasks: tasks });
                 });
@@ -357,7 +348,7 @@
             });
             masterCalendarContainer.addEventListener('click', handleCalendarEvents);
             membersContainer.addEventListener('click', handleMemberEvents);
-            membersContainer.addEventListener('change', handleMemberEvents); 
+            membersContainer.addEventListener('change', handleMemberEvents);
         }
         
         main();
