@@ -1,285 +1,309 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tejal's Study Group with Timers</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .goal-item:hover .delete-goal-btn { opacity: 1; }
-    .calendar-day.has-tasks { background-color: #e0e7ff; }
-    .calendar-day.is-today { box-shadow: 0 0 0 2px #4f46e5; }
-  </style>
-</head>
-<body class="bg-slate-100 text-slate-800">
-  <div class="container mx-auto p-4 md:p-8 max-w-4xl">
-    <header class="text-center mb-8">
-      <h1 class="text-4xl md:text-5xl font-bold text-slate-900">Tejal's Study Group</h1>
-      <p class="text-slate-600 mt-2">Track your daily study time with timers and goals.</p>
-    </header>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+    getFirestore, collection, onSnapshot, addDoc, doc,
+    updateDoc, deleteDoc, serverTimestamp, arrayUnion, runTransaction
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    <div id="members-container" class="grid grid-cols-1 gap-8 mb-8"></div>
-    <div id="loader" class="text-center py-10">
-      <p>Loading members...</p>
-    </div>
+const firebaseConfig = {
+    apiKey: "AIzaSyC8zXcbDNwdm2LMbpzV1KkN3wiTyh_vZ3M",
+    authDomain: "o-study-f5081.firebaseapp.com",
+    projectId: "o-study-f5081",
+    storageBucket: "o-study-f5081.firebasestorage.app",
+    messagingSenderId: "338420264881",
+    appId: "1:338420264881:web:c4119859174ab264709790",
+    measurementId: "G-8HCPGJ13MH"
+};
 
-    <div id="master-calendar-container" class="bg-white p-6 rounded-2xl shadow-lg mb-8"></div>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    <div class="bg-white p-6 rounded-2xl shadow-lg">
-      <h2 class="text-2xl font-semibold mb-4 text-slate-800">Add a New Member</h2>
-      <div class="flex flex-col sm:flex-row gap-4">
-        <input type="text" id="new-member-name" placeholder="Enter your name" class="flex-grow p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"/>
-        <button id="add-member-btn" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg">
-          Add Me to the Group
-        </button>
-      </div>
-    </div>
-  </div>
+let allMembersData = [];
+const memberViewStates = {};
+let calendarDate = new Date();
+const timersMap = {};
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, runTransaction
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+function getLocalDateString(date) {
+    const offset = date.getTimezoneOffset();
+    const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
+    return adjustedDate.toISOString().split('T')[0];
+}
+const TODAY_STRING = getLocalDateString(new Date());
 
-    // ✅ Your Firebase configuration has been added here.
-    const firebaseConfig = {
-      apiKey: "AIzaSyC8zXcbDNwdm2LMbpzV1KkN3wiTyh_vZ3M",
-      authDomain: "o-study-f5081.firebaseapp.com",
-      projectId: "o-study-f5081",
-      storageBucket: "o-study-f5081.appspot.com",
-      messagingSenderId: "338420264881",
-      appId: "1:338420264881:web:c4119859174ab264709790",
-      measurementId: "G-8HCPGJ13MH"
-    };
+const addMemberBtn = document.getElementById('add-member-btn');
+const newMemberNameInput = document.getElementById('new-member-name');
+const membersContainer = document.getElementById('members-container');
+const masterCalendarContainer = document.getElementById('master-calendar-container');
+const loader = document.getElementById('loader');
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+// 🆕 Converts ms to HH:MM:SS
+function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return (hours > 0 ? `${hours}:` : '') +
+           `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
 
-    // --- Core Variables ---
-    let allMembersData = [];
-    const memberViewStates = {}; // { memberId: "YYYY-MM-DD" }
-    let calendarDate = new Date();
-    const timersMap = {}; // Holds running intervals per member per goal
-
-    function getLocalDateString(date) {
-      const offset = date.getTimezoneOffset();
-      const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
-      return adjustedDate.toISOString().split("T")[0];
-    }
-    const TODAY_STRING = getLocalDateString(new Date());
-
-    const loader = document.getElementById("loader");
-    const membersContainer = document.getElementById("members-container");
-    const calendarContainer = document.getElementById("master-calendar-container");
-    const newMemberInput = document.getElementById("new-member-name");
-    const addMemberBtn = document.getElementById("add-member-btn");
-
-    function formatTime(ms) {
-      const totalSeconds = Math.floor(ms / 1000);
-      const h = Math.floor(totalSeconds / 3600);
-      const m = Math.floor((totalSeconds % 3600) / 60);
-      const s = totalSeconds % 60;
-      return (h > 0 ? `${h}:` : '') + `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    }
-
-    function renderMembers(members) {
-      membersContainer.innerHTML = "";
-
-      members.forEach(member => {
-        const memberId = member.id;
-        const selectedDate = memberViewStates[memberId] || TODAY_STRING;
-        const goals = (member.dailyTasks?.[selectedDate] || []).sort((a, b) => a.completed - b.completed);
-
-        const totalTasks = goals.length;
-        const completedTasks = goals.filter(g => g.completed).length;
-
-        const card = document.createElement("div");
-        card.className = "bg-white p-6 rounded-2xl shadow-lg flex flex-col gap-4";
-        card.setAttribute("data-id", memberId);
-
-        let goalsHTML = goals.map(goal => {
-          const timeDisplay = `<span class="font-mono">${formatTime(goal.totalTime || 0)}</span>`;
-          const controls = goal.completed
-            ? `<span class="text-green-600 text-sm">Done at ${goal.completedTime?.substring(11, 16)}</span>`
-            : `
-              <div class="flex gap-2 text-sm items-center">
-                ${timeDisplay}
-                <button class="timer-start text-green-500" title="Start">&#x25B6;</button>
-                <button class="timer-stop text-red-600" title="Stop">&#x23F8;</button>
-                <button class="timer-complete text-purple-600" title="Complete">&#x2713;</button>
-              </div>`;
-
-          return `
-            <div class="goal-item flex justify-between items-center border-b py-2 last:border-none" data-goal-id="${goal.id}" data-goal-date="${selectedDate}">
-              <div class="flex items-center space-x-2 w-full">
-                <input type="checkbox" ${goal.completed ? "checked" : ""} disabled class="goal-checkbox" />
-                <span class="${goal.completed ? 'line-through text-gray-400' : ''}">${goal.text}</span>
-              </div>
-              <div class="flex-shrink-0 text-right">${controls}</div>
-            </div>`;
-        }).join("");
-
-        card.innerHTML = `
-          <div class="flex justify-between items-center">
-            <h3 class="text-xl font-bold text-indigo-700">${member.name}</h3>
-            <button class="delete-member-btn text-slate-400 hover:text-red-500 text-lg">&times;</button>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <label class="text-sm font-medium">Tasks for:</label>
-            <input type="date" value="${selectedDate}" class="member-date-picker border rounded px-2 py-1 text-sm" />
-          </div>
-
-          <div class="bg-slate-50 rounded p-2 overflow-y-auto max-h-72">${goalsHTML || '<p class="text-slate-400 text-sm">No goals for this day.</p>'}</div>
-
-          <div class="flex gap-2 mt-4">
-            <input type="text" class="new-goal-input flex-grow rounded border p-2" placeholder="Add a new goal..." />
-            <button class="add-goal-btn bg-indigo-600 text-white px-4 py-2 rounded">Add</button>
-          </div>`;
-        
-        membersContainer.appendChild(card);
-      });
-    }
-
-    async function stopAllTimers(memberId) {
-      if (!timersMap[memberId]) return;
-      Object.values(timersMap[memberId]).forEach(t => clearInterval(t));
-      timersMap[memberId] = {};
-    }
-
-    function handleGoalActions(e, memberId, memberDocRef) {
-      const goalItem = e.target.closest("[data-goal-id]");
-      if (!goalItem) return;
-      const { goalId, goalDate } = goalItem.dataset;
-
-      const updateGoals = async (updater) => {
-        await runTransaction(db, async (tx) => {
-          const memberSnap = await tx.get(memberDocRef);
-          if (!memberSnap.exists()) return;
-          const data = memberSnap.data();
-          const tasks = data.dailyTasks || {};
-          const goals = tasks[goalDate] || [];
-          const updated = updater(goals);
-          tasks[goalDate] = updated;
-          tx.update(memberDocRef, { dailyTasks: tasks });
+function renderApp() {
+    const tasksByDate = {};
+    allMembersData.forEach(member => {
+        Object.keys(member.dailyTasks || {}).forEach(date => {
+            if (!tasksByDate[date]) { tasksByDate[date] = 0; }
+            tasksByDate[date] += member.dailyTasks[date].length;
         });
-      };
-
-      if (e.target.classList.contains("timer-start")) {
-        stopAllTimers(memberId); // Stop other timers for the same member
-        const member = allMembersData.find(m => m.id === memberId);
-        const goal = member?.dailyTasks?.[goalDate]?.find(g => g.id === goalId);
-        const initialTime = goal?.totalTime || 0;
-
-        updateGoals(goals =>
-          goals.map(g => g.id === goalId
-            ? { ...g, startTime: Date.now(), isRunning: true }
-            : { ...g, isRunning: false, startTime: null })
-        );
-
-        const span = goalItem.querySelector(".font-mono");
-        const startTime = Date.now();
-        timersMap[memberId] = {
-          [goalId]: setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            span.textContent = formatTime(initialTime + elapsed);
-          }, 1000)
-        };
-
-      } else if (e.target.classList.contains("timer-stop")) {
-        updateGoals(goals =>
-          goals.map(g => {
-            if (g.id === goalId && g.isRunning) {
-              const now = Date.now();
-              const duration = now - (g.startTime || now);
-              return { ...g, isRunning: false, startTime: null, totalTime: (g.totalTime || 0) + duration };
-            }
-            return g;
-          }));
-        stopAllTimers(memberId);
-
-      } else if (e.target.classList.contains("timer-complete")) {
-        const now = Date.now();
-        updateGoals(goals =>
-          goals.map(g => {
-            if (g.id === goalId) {
-              const extra = g.isRunning ? now - g.startTime : 0;
-              return {
-                ...g,
-                completed: true,
-                completedTime: new Date(now).toISOString(),
-                isRunning: false,
-                startTime: null,
-                totalTime: (g.totalTime || 0) + extra
-              };
-            }
-            return g;
-          }));
-        stopAllTimers(memberId);
-      }
-    }
-
-    function initEventListeners() {
-      membersContainer.addEventListener("click", async (e) => {
-        const card = e.target.closest("[data-id]");
-        if (!card) return;
-        const memberId = card.dataset.id;
-        const memberRef = doc(db, "members", memberId);
-
-        if (e.target.classList.contains("delete-member-btn")) {
-          if (confirm("Delete member?")) await deleteDoc(memberRef);
-        } else if (e.target.classList.contains("add-goal-btn")) {
-          const input = card.querySelector(".new-goal-input");
-          const date = card.querySelector(".member-date-picker").value;
-          const text = input.value.trim();
-          if (text) {
-            await updateDoc(memberRef, {
-              [`dailyTasks.${date}`]: arrayUnion({
-                id: crypto.randomUUID(),
-                text,
-                completed: false,
-                totalTime: 0,
-                isRunning: false
-              })
-            });
-            input.value = "";
-          }
-        } else if (e.target.classList.contains("member-date-picker")) {
-          memberViewStates[memberId] = e.target.value;
-          renderMembers(allMembersData);
-        } else {
-          handleGoalActions(e, memberId, memberRef);
-        }
-      });
-    }
-
-    function listenToFirestore() {
-      onSnapshot(collection(db, "members"), (snapshot) => {
-        loader.style.display = "none";
-        allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderMembers(allMembersData);
-      });
-    }
-
-    addMemberBtn.addEventListener("click", async () => {
-      const name = newMemberInput.value.trim();
-      if (name) {
-        await addDoc(collection(db, "members"), {
-          name,
-          createdAt: serverTimestamp(),
-          dailyTasks: {}
-        });
-        newMemberInput.value = "";
-      }
     });
 
-    // Initialize app
-    listenToFirestore();
-    initEventListeners();
-  </script>
-</body>
-</html>
+    renderMasterCalendar(calendarDate.getFullYear(), calendarDate.getMonth(), tasksByDate);
+    renderMembers(allMembersData);
+}
+
+function renderMembers(members) {
+    membersContainer.innerHTML = '';
+    if (members.length === 0) {
+        loader.style.display = 'none';
+        membersContainer.innerHTML = `<p class="text-center text-slate-500 col-span-1">No members yet. Be the first to join!</p>`;
+        return;
+    }
+
+    members.forEach(member => {
+        const memberCard = document.createElement('div');
+        memberCard.className = 'bg-white p-6 rounded-2xl shadow-lg flex flex-col';
+        memberCard.setAttribute('data-id', member.id);
+
+        const selectedDate = memberViewStates[member.id] || TODAY_STRING;
+        const goalsForSelectedDate = (member.dailyTasks?.[selectedDate] || []).sort((a, b) => a.completed - b.completed);
+
+        const totalTasks = goalsForSelectedDate.length;
+        const completedTasks = goalsForSelectedDate.filter(g => g.completed).length;
+        const progressPercentage = totalTasks === 0 ? 0 : (completedTasks / totalTasks) * 100;
+
+        const goalsHtml = goalsForSelectedDate.map(goal => {
+            const runningTime = goal.totalTime || 0;
+            const isRunning = goal.isRunning;
+            const timerDisplay = `<span class="font-mono text-sm">${formatTime(runningTime)}</span>`;
+            const controls = goal.completed ? 
+                `<span class="text-green-600">✓ Done at ${goal.completedTime?.substring(11, 16) || ''}</span>` 
+                : `
+                <div class="flex items-center gap-2 text-sm">
+                    ${timerDisplay}
+                    <button class="timer-start text-green-600 hover:scale-110" title="Start">&#x25B6;</button>
+                    <button class="timer-stop text-red-500 hover:scale-110" title="Stop">&#x23F8;</button>
+                    <button class="timer-complete text-purple-600 hover:scale-110" title="Complete">&#x2713;</button>
+                </div>
+                `;
+
+            return `
+                <div class="goal-item flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 group" data-goal-id="${goal.id}" data-goal-date="${selectedDate}">
+                    <label class="flex items-center cursor-pointer flex-grow">
+                        <input type="checkbox" class="goal-checkbox h-5 w-5 rounded text-indigo-600" ${goal.completed ? 'checked' : ''} disabled>
+                        <span class="ml-3 text-slate-700 ${goal.completed ? 'line-through text-slate-400' : ''}">${goal.text}</span>
+                    </label>
+                    <div class="ml-2 flex-shrink-0 text-right">
+                        ${controls}
+                        <button class="delete-goal-btn text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 ml-2">
+                            🗑️
+                        </button>
+                    </div>
+                </div>`;
+        }).join('');
+
+        memberCard.innerHTML = `
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-2xl font-bold text-indigo-700">${member.name}</h3>
+                <button class="delete-member-btn text-slate-400 hover:text-red-600 text-2xl font-bold">&times;</button>
+            </div>
+
+            <div class="flex items-center gap-2 mb-4">
+                <label class="font-semibold text-slate-600">Tasks for:</label>
+                <input type="date" class="member-date-picker p-1 border rounded-md" value="${selectedDate}">
+            </div>
+
+            <div class="mb-4">
+                <div class="flex justify-between items-center mb-1 text-sm text-slate-600">
+                    <span>Progress</span>
+                    <span>${completedTasks} / ${totalTasks}</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2.5">
+                    <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" style="width: ${progressPercentage}%"></div>
+                </div>
+            </div>
+            
+            <div class="goals-list flex-grow pr-2 overflow-y-auto" style="min-height: 150px; max-height: 300px;">${goalsHtml || `<p class="text-slate-400 p-3">No goals for ${selectedDate}.</p>`}</div>
+
+            <div class="mt-auto pt-4 border-t flex flex-col sm:flex-row gap-2">
+                <input type="text" class="new-goal-input flex-grow p-2 border rounded-lg" placeholder="Add a new goal...">
+                <button class="add-goal-btn bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg">Add Goal</button>
+            </div>`;
+        membersContainer.appendChild(memberCard);
+    });
+}
+
+function stopAllTimers(memberId) {
+    if (!timersMap[memberId]) return;
+    Object.values(timersMap[memberId]).forEach(ctrl => clearInterval(ctrl.intervalId));
+    timersMap[memberId] = {};
+}
+
+function handleTimerEvent(e, memberId, memberDocRef) {
+    const goalItem = e.target.closest('[data-goal-id]');
+    if (!goalItem) return;
+    const { goalId, goalDate } = goalItem.dataset;
+
+    if (!timersMap[memberId]) timersMap[memberId] = {};
+
+    const updateTaskField = async (updaterFn) => {
+        await runTransaction(db, async (transaction) => {
+            const memberSnap = await transaction.get(memberDocRef);
+            if (!memberSnap.exists()) return;
+            const tasks = memberSnap.data().dailyTasks || {};
+            const goals = tasks[goalDate] || [];
+            const updatedGoals = updaterFn(goals);
+            tasks[goalDate] = updatedGoals;
+            transaction.update(memberDocRef, { dailyTasks: tasks });
+        });
+    };
+
+    if (e.target.classList.contains('timer-start')) {
+        stopAllTimers(memberId);
+
+        updateTaskField(goals => goals.map(g => {
+            if (g.id === goalId) {
+                g.isRunning = true;
+                g.startTime = Date.now();
+            } else {
+                g.isRunning = false;
+                g.startTime = null;
+            }
+            return g;
+        }));
+
+        // Interval for display
+        const span = goalItem.querySelector('span.font-mono');
+        let start = Date.now();
+        const intervalId = setInterval(() => {
+            const elapsed = Date.now() - start;
+            span.textContent = formatTime(elapsed);
+        }, 1000);
+
+        timersMap[memberId][goalId] = { intervalId };
+    }
+
+    if (e.target.classList.contains('timer-stop')) {
+        updateTaskField(goals => goals.map(g => {
+            if (g.id === goalId && g.isRunning) {
+                const now = Date.now();
+                const duration = now - g.startTime;
+                g.totalTime = (g.totalTime || 0) + duration;
+                g.startTime = null;
+                g.isRunning = false;
+            }
+            return g;
+        }));
+        stopAllTimers(memberId);
+    }
+
+    if (e.target.classList.contains('timer-complete')) {
+        updateTaskField(goals => goals.map(g => {
+            if (g.id === goalId) {
+                const now = Date.now();
+                if (g.isRunning) {
+                    const duration = now - g.startTime;
+                    g.totalTime = (g.totalTime || 0) + duration;
+                }
+                g.completed = true;
+                g.completedTime = new Date(now).toISOString();
+                g.isRunning = false;
+                g.startTime = null;
+            }
+            return g;
+        }));
+        stopAllTimers(memberId);
+    }
+}
+
+function handleMemberEvents(e) {
+    const memberCard = e.target.closest('.bg-white[data-id]');
+    if (!memberCard) return;
+    const memberId = memberCard.dataset.id;
+    const memberDocRef = doc(db, 'members', memberId);
+
+    if (e.target.classList.contains('member-date-picker')) {
+        memberViewStates[memberId] = e.target.value;
+        renderMembers(allMembersData);
+        return;
+    }
+    if (e.target.closest('.delete-member-btn')) {
+        if (confirm('Are you sure?')) deleteDoc(memberDocRef);
+        return;
+    }
+    if (e.target.classList.contains('add-goal-btn')) {
+        const text = memberCard.querySelector('.new-goal-input').value.trim();
+        const date = memberCard.querySelector('.member-date-picker').value;
+        if (text && date) {
+            updateDoc(memberDocRef, { [`dailyTasks.${date}`]: arrayUnion({ id: crypto.randomUUID(), text, completed: false, totalTime: 0, isRunning: false }) });
+            memberCard.querySelector('.new-goal-input').value = '';
+        }
+        return;
+    }
+
+    handleTimerEvent(e, memberId, memberDocRef);
+
+    if (e.target.closest('.delete-goal-btn')) {
+        const { goalId, goalDate } = e.target.closest('[data-goal-id]').dataset;
+        runTransaction(db, async (transaction) => {
+            const docSnap = await transaction.get(memberDocRef);
+            const data = docSnap.data();
+            const goals = data.dailyTasks?.[goalDate] || [];
+            const updated = goals.filter(g => g.id !== goalId);
+            transaction.update(memberDocRef, { [`dailyTasks.${goalDate}`]: updated });
+        });
+    }
+}
+
+function handleCalendarEvents(e) {
+    if (e.target.closest('#prev-month-btn')) {
+        calendarDate.setMonth(calendarDate.getMonth() - 1);
+        renderApp();
+    }
+    if (e.target.closest('#next-month-btn')) {
+        calendarDate.setMonth(calendarDate.getMonth() + 1);
+        renderApp();
+    }
+    const dayCell = e.target.closest('.calendar-day');
+    if (dayCell) {
+        const date = dayCell.dataset.date;
+        allMembersData.forEach(member => { memberViewStates[member.id] = date; });
+        renderMembers(allMembersData);
+    }
+}
+
+function main() {
+    onSnapshot(collection(db, 'members'), (snapshot) => {
+        loader.style.display = 'none';
+        allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        renderApp();
+    }, (error) => {
+        console.error("Error loading data: ", error);
+        loader.innerHTML = "Error loading data.";
+    });
+
+    addMemberBtn.addEventListener('click', () => {
+        const name = newMemberNameInput.value.trim();
+        if (name) {
+            addDoc(collection(db, 'members'), { name, dailyTasks: {}, createdAt: serverTimestamp() });
+            newMemberNameInput.value = '';
+        }
+    });
+
+    masterCalendarContainer.addEventListener('click', handleCalendarEvents);
+    membersContainer.addEventListener('click', handleMemberEvents);
+    membersContainer.addEventListener('change', handleMemberEvents);
+}
+
+main();
+</script>
+
 
