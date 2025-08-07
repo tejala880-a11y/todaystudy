@@ -12,7 +12,7 @@
         .goals-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
         .goals-list::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
         .goals-list::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        .goal-item:hover .goal-actions { opacity: 1; }
+        /* Removed .goal-item:hover .goal-actions rule as it's no longer needed */
         .calendar-day.has-tasks { background-color: #e0e7ff; }
         .calendar-day.is-today { box-shadow: 0 0 0 2px #4f46e5; }
     </style>
@@ -75,7 +75,6 @@
             return adjustedDate.toISOString().split('T')[0];
         }
 
-        // NEW: Helper function to format duration in seconds into a readable string
         function formatDuration(seconds) {
             if (!seconds || seconds <= 0) return "";
             const h = Math.floor(seconds / 3600);
@@ -167,29 +166,29 @@
                 const completedTasks = goalsForSelectedDate.filter(g => g.completed).length;
                 const progressPercentage = totalTasks === 0 ? 0 : (completedTasks / totalTasks) * 100;
 
-                // MODIFIED: Logic for rendering each goal item with new buttons and info
                 const goalsHtml = totalTasks > 0
                     ? goalsForSelectedDate.map(goal => {
                         const isStarted = !!goal.startTime;
                         const timeTakenDisplay = goal.completed && goal.timeTaken ? `<span class="text-xs text-indigo-500 ml-2 font-medium">${formatDuration(goal.timeTaken)}</span>` : '';
                         
-                        // NEW: Start button logic
                         const startButtonHtml = !isStarted && !goal.completed ? `
-                            <button class="start-goal-btn text-slate-400 hover:text-green-500">
+                            <button class="start-goal-btn text-slate-400 opacity-60 hover:opacity-100 hover:text-green-500 transition-all">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                            </button>` : `<div class="w-[20px]"></div>`; // Placeholder for alignment
+                            </button>` : `<div class="w-[20px]"></div>`;
 
                         return `
-                        <div class="goal-item flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition group" data-goal-id="${goal.id}" data-goal-date="${selectedDate}">
+                        <div class="goal-item flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition" data-goal-id="${goal.id}" data-goal-date="${selectedDate}">
                             <label class="flex items-center cursor-pointer flex-grow">
                                 <input type="checkbox" class="goal-checkbox h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500" 
                                     ${goal.completed ? 'checked' : ''} 
-                                    ${!isStarted ? 'disabled' : ''}  /* NEW: Disable checkbox if not started */
+                                    ${!isStarted ? 'disabled' : ''}
                                 >
                                 <span class="ml-3 text-slate-700 ${goal.completed ? 'line-through text-slate-400' : ''}">${goal.text}</span>
-                                ${timeTakenDisplay} </label>
-                            <div class="goal-actions flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                ${startButtonHtml} <button class="delete-goal-btn text-slate-400 hover:text-red-500">
+                                ${timeTakenDisplay}
+                            </label>
+                            <div class="goal-actions flex items-center gap-2">
+                                ${startButtonHtml}
+                                <button class="delete-goal-btn text-slate-400 opacity-60 hover:opacity-100 hover:text-red-500 transition-all">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                 </button>
                             </div>
@@ -262,7 +261,6 @@
                 if (confirm('Are you sure?')) await deleteDoc(memberDocRef);
                 return;
             }
-            // MODIFIED: Adding a new goal now includes start and end time fields
             if (e.target.classList.contains('add-goal-btn')) {
                 const text = memberCard.querySelector('.new-goal-input').value.trim();
                 const date = memberCard.querySelector('.member-date-picker').value;
@@ -271,9 +269,9 @@
                         id: self.crypto.randomUUID(), 
                         text, 
                         completed: false, 
-                        startTime: null, // NEW
-                        endTime: null,   // NEW
-                        timeTaken: null  // NEW
+                        startTime: null,
+                        endTime: null,
+                        timeTaken: null
                     };
                     await updateDoc(memberDocRef, { [`dailyTasks.${date}`]: arrayUnion(newGoal) });
                     memberCard.querySelector('.new-goal-input').value = '';
@@ -285,7 +283,6 @@
             if (!goalItem) return;
             const { goalId, goalDate } = goalItem.dataset;
 
-            // MODIFIED: Transaction logic is now much more complex to handle timing
             try {
                  await runTransaction(db, async (transaction) => {
                     const memberDoc = await transaction.get(memberDocRef);
@@ -293,24 +290,26 @@
                     
                     const tasks = memberDoc.data().dailyTasks || {};
                     const currentGoals = tasks[goalDate] || [];
-                    let targetGoal = currentGoals.find(g => g.id === goalId);
+                    const targetGoal = currentGoals.find(g => g.id === goalId);
                     if (!targetGoal) return;
 
                     let updatedGoals;
 
-                    if (e.target.closest('.delete-goal-btn')) {
+                    // MODIFIED: Made the click detection for checkbox more robust, consistent with buttons.
+                    const deleteBtn = e.target.closest('.delete-goal-btn');
+                    const startBtn = e.target.closest('.start-goal-btn');
+                    const checkbox = e.target.closest('.goal-checkbox');
+
+                    if (deleteBtn) {
                        updatedGoals = currentGoals.filter(g => g.id !== goalId);
-                    } else if (e.target.closest('.start-goal-btn')) {
-                        // NEW: Handle starting a goal
+                    } else if (startBtn) {
                         updatedGoals = currentGoals.map(g => 
                             g.id === goalId ? { ...g, startTime: serverTimestamp() } : g
                         );
-                    } else if (e.target.classList.contains('goal-checkbox')) {
-                        const isChecking = e.target.checked;
-                        if (isChecking) {
-                            // Complete the goal, calculate time
-                            const startTime = targetGoal.startTime.toDate(); // Convert Firestore timestamp to JS Date
-                            const endTime = new Date(); // Current time
+                    } else if (checkbox) {
+                        if (checkbox.checked) {
+                            const startTime = targetGoal.startTime.toDate();
+                            const endTime = new Date();
                             const durationSeconds = Math.round((endTime.getTime() - startTime.getTime()) / 1000);
                             
                             updatedGoals = currentGoals.map(g => g.id === goalId ? { 
@@ -319,9 +318,7 @@
                                 endTime: Timestamp.fromDate(endTime),
                                 timeTaken: durationSeconds 
                             } : g);
-
                         } else {
-                            // Un-complete the goal, reset time
                              updatedGoals = currentGoals.map(g => g.id === goalId ? { 
                                 ...g, 
                                 completed: false, 
@@ -360,7 +357,6 @@
             });
             masterCalendarContainer.addEventListener('click', handleCalendarEvents);
             membersContainer.addEventListener('click', handleMemberEvents);
-            // 'change' event still needed for the date picker
             membersContainer.addEventListener('change', handleMemberEvents); 
         }
         
@@ -368,3 +364,4 @@
     </script>
 </body>
 </html>
+
