@@ -21,22 +21,89 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
         }
-        .play-btn, .stop-btn, .complete-btn {
-            width: 28px;
-            height: 28px;
+        
+        /* Enhanced timer button styles */
+        .timer-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            outline: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .timer-btn.play-state {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .timer-btn.pause-state {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        
+        .timer-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+        
+        .timer-btn:active {
+            transform: scale(0.95);
+            transition: all 0.1s ease;
+        }
+        
+        /* Click ripple effect */
+        .timer-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transition: width 0.6s, height 0.6s, top 0.6s, left 0.6s;
+            transform: translate(-50%, -50%);
+        }
+        
+        .timer-btn.clicked::before {
+            width: 60px;
+            height: 60px;
+            top: 50%;
+            left: 50%;
+            opacity: 0;
+        }
+        
+        .complete-btn {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
         }
-        .play-btn { background: #10b981; color: white; }
-        .play-btn:hover { background: #059669; transform: scale(1.1); }
-        .stop-btn { background: #ef4444; color: white; }
-        .stop-btn:hover { background: #dc2626; transform: scale(1.1); }
-        .complete-btn { background: #8b5cf6; color: white; }
-        .complete-btn:hover { background: #7c3aed; transform: scale(1.1); }
+        
+        .complete-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+        
         .time-stats { font-size: 0.75rem; color: #64748b; }
     </style>
 </head>
@@ -118,6 +185,14 @@
                 total += Date.now() - goal.startTime;
             }
             return total;
+        }
+
+        // Add click animation to timer button
+        function addClickAnimation(button) {
+            button.classList.add('clicked');
+            setTimeout(() => {
+                button.classList.remove('clicked');
+            }, 600);
         }
 
         // DOM ELEMENTS
@@ -224,13 +299,15 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 ml-3">
-                                ${!goal.completed ? (
-                                    isRunning ? 
-                                    `<div class="stop-btn timer-control-btn" data-action="stop" title="Stop Timer">⏸</div>
-                                     <div class="complete-btn timer-control-btn" data-action="complete" title="Complete Goal">✓</div>` :
-                                    `<div class="play-btn timer-control-btn" data-action="start" title="Start Timer">▶</div>`
-                                ) : ''}
+                            <div class="flex items-center gap-3 ml-3">
+                                ${!goal.completed ? `
+                                    <button class="timer-btn ${isRunning ? 'pause-state' : 'play-state'}" 
+                                            data-action="${isRunning ? 'stop' : 'start'}" 
+                                            title="${isRunning ? 'Pause Timer' : 'Start Timer'}">
+                                        ${isRunning ? '⏸' : '▶'}
+                                    </button>
+                                    ${isRunning ? `<div class="complete-btn" data-action="complete" title="Complete Goal">✓</div>` : ''}
+                                ` : ''}
                                 <button class="delete-goal-btn text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                 </button>
@@ -346,50 +423,6 @@
                 return;
             }
             if (e.target.closest('.delete-member-btn')) {
-                if (confirm('Are you sure?')) await deleteDoc(memberDocRef);
-                return;
-            }
-            if (e.target.classList.contains('add-goal-btn')) {
-                const text = memberCard.querySelector('.new-goal-input').value.trim();
-                const date = memberCard.querySelector('.member-date-picker').value;
-                if (text && date) {
-                    const newGoal = {
-                        id: self.crypto.randomUUID(),
-                        text,
-                        completed: false,
-                        startTime: null,
-                        totalTime: 0,
-                        isRunning: false,
-                        completedTime: null
-                    };
-                    await updateDoc(memberDocRef, { [`dailyTasks.${date}`]: arrayUnion(newGoal) });
-                    memberCard.querySelector('.new-goal-input').value = '';
-                }
-                return;
-            }
-            
-            const goalItem = e.target.closest('[data-goal-id]');
-            if (!goalItem) return;
-            
-            const { goalId, goalDate } = goalItem.dataset;
-
-            // Handle timer controls
-            if (e.target.closest('.timer-control-btn')) {
-                const action = e.target.closest('.timer-control-btn').dataset.action;
-                await handleTimerAction(memberDocRef, goalDate, goalId, action);
-                return;
-            }
-
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const memberDoc = await transaction.get(memberDocRef);
-                    if (!memberDoc.exists()) throw "Doc does not exist!";
-                    const tasks = memberDoc.data().dailyTasks || {};
-                    const currentGoals = tasks[goalDate] || [];
-                    let updatedGoals;
-                    
-                    if (e.target.closest('.delete-goal-btn')) {
-                        // Stop timer if running before deleting
-                        const goalToDelete = currentGo
+ 
 
 
