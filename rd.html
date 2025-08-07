@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tejal's Public Study Group</title>
+    <title>Tejal's Study Group - Enhanced with Timer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -11,57 +12,54 @@
         .goals-list::-webkit-scrollbar { width: 6px; }
         .goals-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
         .goals-list::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        .goals-list::-webkit-scrollbar-thumb:hover { background: #64748b; }
         .goal-item:hover .delete-goal-btn { opacity: 1; }
-        .calendar-day.has-tasks { background-color: #e0f2fe; font-weight: 600; }
-        .calendar-day.is-today { box-shadow: 0 0 0 2px #0284c7; }
-        .timer-running-bg { background-color: #f0fdf4; animation: pulse-bg 2s infinite; }
-        
-        /* Animation Keyframes */
-        @keyframes pulse-bg {
-            0%, 100% { background-color: #f0fdf4; }
-            50% { background-color: #dcfce7; }
+        .calendar-day.has-tasks { background-color: #e0e7ff; }
+        .calendar-day.is-today { box-shadow: 0 0 0 2px #4f46e5; }
+        .timer-running { animation: pulse 2s infinite; }
+        .timer-display { font-family: 'Courier New', monospace; font-weight: bold; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .play-btn, .stop-btn, .complete-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        @keyframes shrinkOut {
-            from { opacity: 1; transform: scale(1); max-height: 56px; }
-            to { opacity: 0; transform: scale(0.95); max-height: 0px; padding: 0; margin: 0; overflow: hidden;}
-        }
-
-        /* Animation Utility Classes */
-        .fade-in-up {
-            animation: fadeInUp 0.5s ease-out forwards;
-            animation-delay: var(--stagger-delay, 0ms);
-        }
-        .shrink-out {
-            animation: shrinkOut 0.4s ease-in-out forwards;
-            transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out, margin 0.4s ease-in-out;
-        }
-        .interactive-scale { transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1); }
-        .interactive-scale:hover { transform: scale(1.03); }
-        .interactive-scale:active { transform: scale(0.98); }
+        .play-btn { background: #10b981; color: white; }
+        .play-btn:hover { background: #059669; transform: scale(1.1); }
+        .stop-btn { background: #ef4444; color: white; }
+        .stop-btn:hover { background: #dc2626; transform: scale(1.1); }
+        .complete-btn { background: #8b5cf6; color: white; }
+        .complete-btn:hover { background: #7c3aed; transform: scale(1.1); }
+        .time-stats { font-size: 0.75rem; color: #64748b; }
     </style>
 </head>
-<body class="bg-gray-50 text-slate-800">
-
-    <div class="container mx-auto p-4 md:p-8 max-w-4xl opacity-0 transition-opacity duration-700">
-        <header class="text-center mb-10 opacity-0 fade-in-up">
-            <h1 class="text-4xl md:text-5xl font-bold text-sky-600">Tejal's Study Group</h1>
-            <p class="text-slate-500 mt-2">Shared goals and timed progress for our collective success.</p>
+<body class="bg-slate-100 text-slate-800">
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-900">Tejal's Study Group</h1>
+            <p class="text-slate-600 mt-2">A shared space for our daily goals and progress with time tracking.</p>
         </header>
 
-        <div id="members-container" class="grid grid-cols-1 gap-8 mb-8"></div>
-        <div id="loader" class="text-center py-10"><p>Loading members...</p></div>
-        
-        <div id="master-calendar-container" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8 opacity-0 fade-in-up" style="--stagger-delay: 100ms;"></div>
-        
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 opacity-0 fade-in-up" style="--stagger-delay: 200ms;">
+        <div id="members-container" class="grid grid-cols-1 md:grid-cols-1 gap-8 mb-8"></div>
+        <div id="loader" class="text-center py-10">
+            <p>Loading members...</p>
+        </div>
+
+        <div id="master-calendar-container" class="bg-white p-6 rounded-2xl shadow-lg mb-8"></div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
             <h2 class="text-2xl font-semibold mb-4 text-slate-800">Add a New Member</h2>
             <div class="flex flex-col sm:flex-row gap-4">
-                <input type="text" id="new-member-name" placeholder="Enter your name" class="flex-grow p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none transition">
-                <button id="add-member-btn" class="bg-sky-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-sky-700 transition-all duration-300 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 interactive-scale">
+                <input type="text" id="new-member-name" placeholder="Enter your name" class="flex-grow p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                <button id="add-member-btn" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Add Me to the Group
                 </button>
             </div>
@@ -70,8 +68,12 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import {
+            getFirestore, collection, onSnapshot, addDoc, doc,
+            updateDoc, deleteDoc, serverTimestamp, arrayUnion, runTransaction
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC8zXcbDNwdm2LMbpzV1KkN3wiTyh_vZ3M",
             authDomain: "o-study-f5081.firebaseapp.com",
@@ -85,213 +87,308 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- App State ---
+        // STATE & HELPERS
         let allMembersData = [];
         const memberViewStates = {};
         let calendarDate = new Date();
-        const timerIntervals = {};
+        const timerIntervals = {}; // Store active timer intervals
 
-        // --- DOM Elements ---
-        const DOM = {
-            mainContainer: document.querySelector('.container'),
-            addMemberBtn: document.getElementById('add-member-btn'),
-            newMemberNameInput: document.getElementById('new-member-name'),
-            membersContainer: document.getElementById('members-container'),
-            masterCalendarContainer: document.getElementById('master-calendar-container'),
-            loader: document.getElementById('loader')
-        };
-        
-        // --- Utility Functions ---
-        const getLocalDateString = (date) => new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        function getLocalDateString(date) {
+            const offset = date.getTimezoneOffset();
+            const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
+            return adjustedDate.toISOString().split('T')[0];
+        }
         const TODAY_STRING = getLocalDateString(new Date());
 
+        // Timer utility functions
         function formatTime(milliseconds) {
             const totalSeconds = Math.floor(milliseconds / 1000);
             const hours = Math.floor(totalSeconds / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
-            if (hours > 0) return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (hours > 0) {
+                return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
+
         function getTotalTimeSpent(goal) {
             let total = goal.totalTime || 0;
-            if (goal.isRunning && goal.startTime) total += Date.now() - goal.startTime;
+            if (goal.isRunning && goal.startTime) {
+                total += Date.now() - goal.startTime;
+            }
             return total;
         }
 
-        // --- Render Functions ---
+        // DOM ELEMENTS
+        const addMemberBtn = document.getElementById('add-member-btn');
+        const newMemberNameInput = document.getElementById('new-member-name');
+        const membersContainer = document.getElementById('members-container');
+        const masterCalendarContainer = document.getElementById('master-calendar-container');
+        const loader = document.getElementById('loader');
+        
+        // RENDER FUNCTIONS
         function renderApp() {
             const tasksByDate = {};
-            allMembersData.forEach(member => Object.keys(member.dailyTasks || {}).forEach(date => { tasksByDate[date] = (tasksByDate[date] || 0) + member.dailyTasks[date].length; }));
+            allMembersData.forEach(member => {
+                Object.keys(member.dailyTasks || {}).forEach(date => {
+                    if (!tasksByDate[date]) { tasksByDate[date] = 0; }
+                    tasksByDate[date] += member.dailyTasks[date].length;
+                });
+            });
+
             renderMasterCalendar(calendarDate.getFullYear(), calendarDate.getMonth(), tasksByDate);
             renderMembers(allMembersData);
         }
-        
+
         function renderMasterCalendar(year, month, tasksByDate) {
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            const firstDay = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate();
-            let html = `<div class="flex items-center justify-between mb-4"><button id="prev-month-btn" class="p-2 rounded-full hover:bg-slate-100 transition interactive-scale">&lt;</button><h2 class="text-xl font-bold text-slate-800">${monthNames[month]} ${year}</h2><button id="next-month-btn" class="p-2 rounded-full hover:bg-slate-100 transition interactive-scale">&gt;</button></div><div class="grid grid-cols-7 gap-2 text-center text-sm font-semibold text-slate-500">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div>${d}</div>`).join('')}</div><div class="grid grid-cols-7 gap-1 mt-2">`;
-            for (let i = 0; i < firstDay; i++) html += `<div></div>`;
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            let calendarHtml = `
+                <div class="flex items-center justify-between mb-4">
+                    <button id="prev-month-btn" class="p-2 rounded-full hover:bg-slate-100">&lt;</button>
+                    <h2 class="text-xl font-bold text-slate-800">${monthNames[month]} ${year}</h2>
+                    <button id="next-month-btn" class="p-2 rounded-full hover:bg-slate-100">&gt;</button>
+                </div>
+                <div class="grid grid-cols-7 gap-2 text-center text-sm font-semibold text-slate-500">
+                    <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                </div>
+                <div class="grid grid-cols-7 gap-2 mt-2">
+            `;
+            
+            for (let i = 0; i < firstDay; i++) { calendarHtml += `<div></div>`; }
+
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = getLocalDateString(new Date(year, month, day));
-                html += `<div class="calendar-day cursor-pointer p-2 rounded-lg text-center transition ${tasksByDate[dateStr] > 0 ? 'has-tasks' : ''} ${dateStr === TODAY_STRING ? 'is-today' : ''} hover:bg-sky-100 interactive-scale" data-date="${dateStr}">${day}</div>`;
+                const hasTasks = tasksByDate[dateStr] > 0;
+                const isToday = dateStr === TODAY_STRING;
+                calendarHtml += `
+                    <div class="calendar-day cursor-pointer p-2 rounded-lg text-center ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'is-today' : ''} hover:bg-indigo-200" data-date="${dateStr}">
+                        ${day}
+                    </div>
+                `;
             }
-            DOM.masterCalendarContainer.innerHTML = html + `</div>`;
+
+            calendarHtml += `</div>`;
+            masterCalendarContainer.innerHTML = calendarHtml;
         }
 
         function renderMembers(members) {
-            DOM.membersContainer.innerHTML = '';
-            if (members.length === 0 && DOM.loader.style.display === 'none') { DOM.membersContainer.innerHTML = `<p class="text-center text-slate-500 col-span-1 opacity-0 fade-in-up">No members yet. Be the first to join!</p>`; return; }
+            membersContainer.innerHTML = '';
+            if (members.length === 0) {
+                if (loader.style.display !== 'none') {
+                    loader.style.display = 'none';
+                }
+                membersContainer.innerHTML = `<p class="text-center text-slate-500 col-span-1">No members yet. Be the first to join!</p>`
+                return;
+            }
 
-            members.forEach((member, index) => {
+            members.forEach(member => {
                 const memberCard = document.createElement('div');
-                memberCard.className = 'bg-white rounded-2xl shadow-sm flex flex-col border border-slate-200 opacity-0 fade-in-up';
-                memberCard.style.setProperty('--stagger-delay', `${100 + index * 100}ms`);
+                memberCard.className = 'bg-white p-6 rounded-2xl shadow-lg flex flex-col';
                 memberCard.setAttribute('data-id', member.id);
 
-                if (!memberViewStates[member.id]) memberViewStates[member.id] = TODAY_STRING;
-                const selectedDate = memberViewStates[member.id];
-                
-                const goals = (member.dailyTasks?.[selectedDate] || []).sort((a,b) => (a.completed - b.completed) || (b.isRunning - a.isRunning) || ((b.completedTime || 0) - (a.completedTime || 0)));
-                const completedCount = goals.filter(g => g.completed).length;
-                const progress = goals.length === 0 ? 0 : (completedCount / goals.length) * 100;
-                const totalTime = goals.reduce((t, g) => t + getTotalTimeSpent(g), 0);
+                const selectedDate = memberViewStates[member.id] || TODAY_STRING;
+                const goalsForSelectedDate = (member.dailyTasks?.[selectedDate] || []).sort((a, b) => {
+                    // Sort by running status first, then by completion
+                    if (a.isRunning !== b.isRunning) return b.isRunning - a.isRunning;
+                    return a.completed - b.completed;
+                });
+
+                const totalTasks = goalsForSelectedDate.length;
+                const completedTasks = goalsForSelectedDate.filter(g => g.completed).length;
+                const progressPercentage = totalTasks === 0 ? 0 : (completedTasks / totalTasks) * 100;
+
+                // Calculate total time for the day
+                const totalTimeSpentToday = goalsForSelectedDate.reduce((total, goal) => {
+                    return total + getTotalTimeSpent(goal);
+                }, 0);
+
+                const goalsHtml = totalTasks > 0
+                    ? goalsForSelectedDate.map(goal => {
+                        const totalTime = getTotalTimeSpent(goal);
+                        const isRunning = goal.isRunning || false;
+                        const timerDisplay = formatTime(totalTime);
+                        
+                        return `
+                        <div class="goal-item flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition group ${isRunning ? 'timer-running bg-green-50' : ''}" data-goal-id="${goal.id}" data-goal-date="${selectedDate}">
+                            <div class="flex items-center flex-grow">
+                                <input type="checkbox" class="goal-checkbox h-5 w-5 rounded text-indigo-600" ${goal.completed ? 'checked' : ''} ${isRunning ? 'disabled' : ''}>
+                                <div class="ml-3 flex-grow">
+                                    <span class="text-slate-700 ${goal.completed ? 'line-through text-slate-400' : ''}">${goal.text}</span>
+                                    <div class="time-stats mt-1">
+                                        <span class="timer-display ${isRunning ? 'text-green-600' : 'text-slate-500'}">${timerDisplay}</span>
+                                        ${goal.completedTime ? `<span class="ml-2 text-blue-500">Completed: ${new Date(goal.completedTime).toLocaleTimeString()}</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 ml-3">
+                                ${!goal.completed ? (
+                                    isRunning ? 
+                                    `<div class="stop-btn timer-control-btn" data-action="stop" title="Stop Timer">⏸</div>
+                                     <div class="complete-btn timer-control-btn" data-action="complete" title="Complete Goal">✓</div>` :
+                                    `<div class="play-btn timer-control-btn" data-action="start" title="Start Timer">▶</div>`
+                                ) : ''}
+                                <button class="delete-goal-btn text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </div>
+                        </div>`;
+                    }).join('')
+                    : `<p class="text-slate-400 p-3">No goals for ${selectedDate}.</p>`;
 
                 memberCard.innerHTML = `
-                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-t-2xl border-b">
-                        <h3 class="text-xl font-bold text-sky-700">${member.name}</h3>
-                        <button class="delete-member-btn text-slate-400 hover:text-red-600 interactive-scale text-2xl font-bold">&times;</button>
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-2xl font-bold text-indigo-700">${member.name}</h3>
+                        <button class="delete-member-btn text-slate-400 hover:text-red-600 text-2xl font-bold">&times;</button>
                     </div>
-                    <div class="p-4 flex-grow flex flex-col">
-                        <div class="flex items-center gap-2 mb-4">
-                            <label class="font-semibold text-slate-600 text-sm">Date:</label>
-                            <input type="date" class="member-date-picker p-1 border rounded-md text-sm" value="${selectedDate}">
+
+                    <div class="flex items-center gap-2 mb-4">
+                        <label class="font-semibold text-slate-600">Tasks for:</label>
+                        <input type="date" class="member-date-picker p-1 border rounded-md" value="${selectedDate}">
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-1 text-sm text-slate-600">
+                            <span>Progress</span>
+                            <span>${completedTasks} / ${totalTasks}</span>
                         </div>
-                        <div class="mb-4">
-                            <div class="flex justify-between items-center mb-1 text-xs text-slate-500">
-                                <span>Progress</span><span>${completedCount} / ${goals.length}</span>
-                            </div>
-                            <div class="w-full bg-slate-200 rounded-full h-2">
-                                <div class="bg-sky-600 h-2 rounded-full transition-all duration-500" style="width:${progress}%"></div>
-                            </div>
-                            <div class="text-right mt-1 text-xs text-slate-500">Total time: <strong>${formatTime(totalTime)}</strong></div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5">
+                            <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" style="width: ${progressPercentage}%"></div>
                         </div>
-                        <div class="goals-list flex-grow pr-2 -mr-2 overflow-y-auto" style="min-height:150px; max-height:300px;">
-                            ${goals.length > 0 ? goals.map(g => goalToHtml(g, selectedDate)).join('') : `<div class="text-center text-slate-400 p-4">No goals for ${selectedDate}.</div>`}
+                        <div class="flex justify-between items-center mt-2 text-xs text-slate-500">
+                            <span>Total time today: ${formatTime(totalTimeSpentToday)}</span>
                         </div>
-                        <div class="mt-auto pt-4 border-t flex gap-2">
-                            <input type="text" class="new-goal-input flex-grow p-2 border rounded-lg" placeholder="Add a new goal...">
-                            <button class="add-goal-btn bg-slate-700 text-white font-semibold py-2 px-3 rounded-lg hover:bg-slate-800 transition interactive-scale">Add</button>
-                        </div>
+                    </div>
+                    
+                    <div class="goals-list flex-grow pr-2 overflow-y-auto" style="min-height: 150px; max-height: 300px;">${goalsHtml}</div>
+
+                    <div class="mt-auto pt-4 border-t flex flex-col sm:flex-row gap-2">
+                        <input type="text" class="new-goal-input flex-grow p-2 border rounded-lg" placeholder="Add a new goal...">
+                        <button class="add-goal-btn bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg">Add Goal</button>
                     </div>`;
-                DOM.membersContainer.appendChild(memberCard);
-                goals.forEach(g => g.isRunning && startTimerDisplay(member.id, selectedDate, g.id));
+                membersContainer.appendChild(memberCard);
+
+                // Start timers for running goals
+                goalsForSelectedDate.forEach(goal => {
+                    if (goal.isRunning) {
+                        startTimerDisplay(member.id, selectedDate, goal.id);
+                    }
+                });
             });
         }
-        
-        function goalToHtml(goal, date) {
-            const isRunning = goal.isRunning || false;
-            return `
-            <div class="goal-item flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-all duration-300 group ${isRunning?'timer-running-bg':''} ${goal.completed?'opacity-60':''} opacity-0 fade-in-up" data-goal-id="${goal.id}" data-goal-date="${date}" style="--stagger-delay: 150ms;">
-                <div class="flex items-center flex-grow min-w-0">
-                    <input type="checkbox" class="goal-checkbox h-5 w-5 rounded border-gray-300 text-sky-600 focus:ring-sky-500 interactive-scale" ${goal.completed?'checked':''} ${isRunning?'disabled':''}> 
-                    <div class="ml-3 flex-grow min-w-0">
-                        <p class="text-slate-700 truncate ${goal.completed?'line-through':''}">${goal.text}</p>
-                        <div class="time-stats mt-1">
-                            <span class="timer-display ${isRunning?'text-green-600':'text-slate-500'}">${formatTime(getTotalTimeSpent(goal))}</span> 
-                            ${goal.completedTime?`<span class="ml-2 text-blue-500">&bull; Done: ${new Date(goal.completedTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>`:''}
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 ml-2 flex-shrink-0">
-                    ${!goal.completed ? (isRunning ? 
-                        `<div class="control-btn stop-btn interactive-scale" data-action="stop" title="Stop Timer"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16"><path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"/></svg></div>
-                         <div class="control-btn complete-btn interactive-scale" data-action="complete" title="Complete Goal"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/></svg></div>` :
-                        `<div class="control-btn play-btn interactive-scale" data-action="start" title="Start Timer"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg></div>`)
-                    : ''} 
-                    <button class="delete-goal-btn text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity interactive-scale">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                </div>
-            </div>`;
+
+        // TIMER FUNCTIONS
+        function startTimerDisplay(memberId, date, goalId) {
+            const intervalKey = `${memberId}_${date}_${goalId}`;
+            
+            if (timerIntervals[intervalKey]) {
+                clearInterval(timerIntervals[intervalKey]);
+            }
+
+            timerIntervals[intervalKey] = setInterval(() => {
+                updateTimerDisplay(memberId, date, goalId);
+            }, 1000);
         }
 
-        // --- Timer Functions ---
-        function startTimerDisplay(memberId, date, goalId) { const key = `${memberId}_${date}_${goalId}`; if (timerIntervals[key]) clearInterval(timerIntervals[key]); timerIntervals[key] = setInterval(() => updateTimerDisplay(memberId, date, goalId), 1000); }
-        function stopTimerDisplay(memberId, date, goalId) { const key = `${memberId}_${date}_${goalId}`; if (timerIntervals[key]) { clearInterval(timerIntervals[key]); delete timerIntervals[key]; } }
-        function updateTimerDisplay(memberId, date, goalId) { const member = allMembersData.find(m => m.id === memberId); if (!member || !member.dailyTasks?.[date]) return; const goal = member.dailyTasks[date].find(g => g.id === goalId); if (!goal || !goal.isRunning) return; const timerEl = document.querySelector(`[data-goal-id="${goalId}"][data-goal-date="${date}"] .timer-display`); if (timerEl) timerEl.textContent = formatTime(getTotalTimeSpent(goal)); }
+        function stopTimerDisplay(memberId, date, goalId) {
+            const intervalKey = `${memberId}_${date}_${goalId}`;
+            if (timerIntervals[intervalKey]) {
+                clearInterval(timerIntervals[intervalKey]);
+                delete timerIntervals[intervalKey];
+            }
+        }
 
-        // --- Event Handlers & DB Interactions ---
+        function updateTimerDisplay(memberId, date, goalId) {
+            const member = allMembersData.find(m => m.id === memberId);
+            if (!member || !member.dailyTasks?.[date]) return;
+
+            const goal = member.dailyTasks[date].find(g => g.id === goalId);
+            if (!goal || !goal.isRunning) return;
+
+            const goalElement = document.querySelector(`[data-goal-id="${goalId}"][data-goal-date="${date}"] .timer-display`);
+            if (goalElement) {
+                const totalTime = getTotalTimeSpent(goal);
+                goalElement.textContent = formatTime(totalTime);
+            }
+        }
+
+        // EVENT HANDLERS
+        function handleCalendarEvents(e) {
+            if (e.target.closest('#prev-month-btn')) {
+                calendarDate.setMonth(calendarDate.getMonth() - 1);
+                renderApp();
+            }
+            if (e.target.closest('#next-month-btn')) {
+                calendarDate.setMonth(calendarDate.getMonth() + 1);
+                renderApp();
+            }
+            const dayCell = e.target.closest('.calendar-day');
+            if (dayCell) {
+                const date = dayCell.dataset.date;
+                allMembersData.forEach(member => { memberViewStates[member.id] = date; });
+                renderMembers(allMembersData);
+            }
+        }
+
         async function handleMemberEvents(e) {
-            const memberCard = e.target.closest('[data-id]');
+            const memberCard = e.target.closest('.bg-white[data-id]');
             if (!memberCard) return;
+
             const memberId = memberCard.dataset.id;
             const memberDocRef = doc(db, 'members', memberId);
 
-            if (e.target.classList.contains('member-date-picker')) { memberViewStates[memberId] = e.target.value; renderApp(); return; }
-            if (e.target.closest('.delete-member-btn')) { if (confirm('Are you sure you want to remove this member?')) await deleteDoc(memberDocRef); return; }
-            if (e.target.classList.contains('add-goal-btn')) {
-                const input = memberCard.querySelector('.new-goal-input'); const text = input.value.trim();
-                const date = memberCard.querySelector('.member-date-picker').value;
-                if (text && date) { const newGoal = { id: self.crypto.randomUUID(), text, completed: false, startTime: null, totalTime: 0, isRunning: false, completedTime: null }; await updateDoc(memberDocRef, { [`dailyTasks.${date}`]: arrayUnion(newGoal) }); input.value = ''; } return;
+            if (e.target.classList.contains('member-date-picker')) {
+                memberViewStates[memberId] = e.target.value;
+                renderMembers(allMembersData);
+                return;
             }
-
+            if (e.target.closest('.delete-member-btn')) {
+                if (confirm('Are you sure?')) await deleteDoc(memberDocRef);
+                return;
+            }
+            if (e.target.classList.contains('add-goal-btn')) {
+                const text = memberCard.querySelector('.new-goal-input').value.trim();
+                const date = memberCard.querySelector('.member-date-picker').value;
+                if (text && date) {
+                    const newGoal = {
+                        id: self.crypto.randomUUID(),
+                        text,
+                        completed: false,
+                        startTime: null,
+                        totalTime: 0,
+                        isRunning: false,
+                        completedTime: null
+                    };
+                    await updateDoc(memberDocRef, { [`dailyTasks.${date}`]: arrayUnion(newGoal) });
+                    memberCard.querySelector('.new-goal-input').value = '';
+                }
+                return;
+            }
+            
             const goalItem = e.target.closest('[data-goal-id]');
             if (!goalItem) return;
+            
             const { goalId, goalDate } = goalItem.dataset;
 
-            if (e.target.closest('.timer-control-btn')) { await handleTimerAction(memberDocRef, goalDate, goalId, e.target.closest('.timer-control-btn').dataset.action); return; }
-            if (e.target.classList.contains('goal-checkbox') || e.target.closest('.delete-goal-btn')) {
-                const action = e.target.closest('.delete-goal-btn') ? 'delete' : 'toggle';
-                if (action === 'delete') { goalItem.classList.add('shrink-out'); setTimeout(() => runGoalTransaction(memberDocRef, goalDate, goalId, action), 400); } 
-                else { await runGoalTransaction(memberDocRef, goalDate, goalId, action, e); }
+            // Handle timer controls
+            if (e.target.closest('.timer-control-btn')) {
+                const action = e.target.closest('.timer-control-btn').dataset.action;
+                await handleTimerAction(memberDocRef, goalDate, goalId, action);
+                return;
             }
-        }
 
-        async function runGoalTransaction(ref, date, goalId, type, event) {
-            await runTransaction(db, async (transaction) => {
-                const memberDoc = await transaction.get(ref); if (!memberDoc.exists()) return;
-                const tasks = { ...(memberDoc.data().dailyTasks || {}) }; const goals = tasks[date] ? [...tasks[date]] : [];
-                const goalIndex = goals.findIndex(g => g.id === goalId); if (goalIndex === -1) return;
-                if (type === 'delete') { goals.splice(goalIndex, 1); } 
-                else { const goal = goals[goalIndex]; if (goal.isRunning) { event.target.checked = false; return; } goal.completed = !goal.completed; goal.completedTime = goal.completed ? Date.now() : null; }
-                tasks[date] = goals;
-                transaction.update(ref, { dailyTasks: tasks });
-            });
-        }
-
-        async function handleTimerAction(ref, date, goalId, action) {
-            await runTransaction(db, async (t) => {
-                const d = await t.get(ref); if (!d.exists()) return;
-                const tasks = { ...(d.data().dailyTasks || {}) }; const goals = tasks[date] ? [...tasks[date]] : [];
-                const i = goals.findIndex(g => g.id === goalId); if (i === -1) return;
-                const goal = { ...goals[i] };
-                if (action === 'start' && !goal.isRunning) { goal.isRunning = true; goal.startTime = Date.now(); startTimerDisplay(ref.id, date, goalId); }
-                else if (action === 'stop' || action === 'complete') {
-                    if (goal.isRunning) { goal.totalTime = (goal.totalTime || 0) + (Date.now() - goal.startTime); goal.isRunning = false; goal.startTime = null; stopTimerDisplay(ref.id, date, goalId); }
-                    if (action === 'complete') { goal.completed = true; goal.completedTime = Date.now(); }
-                }
-                goals[i] = goal; tasks[date] = goals; t.update(ref, { dailyTasks: tasks });
-            });
-        }
-        
-        // --- App Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            DOM.mainContainer.classList.remove('opacity-0');
-        });
-
-        DOM.addMemberBtn.addEventListener('click', async () => { const name = DOM.newMemberNameInput.value.trim(); if (name) { await addDoc(collection(db, 'members'), { name, createdAt: serverTimestamp(), dailyTasks: {} }); DOM.newMemberNameInput.value = ''; } });
-        DOM.newMemberNameInput.addEventListener('keypress', e => e.key === 'Enter' && DOM.addMemberBtn.click());
-        DOM.masterCalendarContainer.addEventListener('click', e => { if (e.target.closest('#prev-month-btn')) { calendarDate.setMonth(calendarDate.getMonth() - 1); renderApp(); } if (e.target.closest('#next-month-btn')) { calendarDate.setMonth(calendarDate.getMonth() + 1); renderApp(); } const dayCell = e.target.closest('.calendar-day'); if (dayCell) { allMembersData.forEach(m => memberViewStates[m.id] = dayCell.dataset.date); renderApp(); } });
-        DOM.membersContainer.addEventListener('click', handleMemberEvents);
-        DOM.membersContainer.addEventListener('keyup', e => { if (e.target.classList.contains('new-goal-input') && e.key === 'Enter') { e.preventDefault(); e.target.closest('.p-4').querySelector('.add-goal-btn')?.click(); } });
-
-        onSnapshot(collection(db, 'members'), (snapshot) => {
-            DOM.loader.style.display = 'none';
-            allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            Object.values(timerIntervals).forEach(clearInterval);
-            renderApp();
-        }, (error) => { console.error("Firebase Error:", error); DOM.loader.innerHTML = `<p class="text-red-500">Could not load data. Ensure your Firestore rules are set to public.</p>`; });
-    </script>
-</body>
-</html>
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const memberDoc = await transaction.get(memberDocRef);
+                    if (!memberDoc.exists()) throw "Doc does not exist!";
+                    const tasks = memberDoc.data().dailyTasks || {};
+                    const currentGoals = tasks[goalDate] || [];
+                    let updatedGoals;
+                    
+                    if (e.target.closest('.delete-goal-btn')) {
+                        // Stop timer if running before deleting
+                        const goalToDelete = currentG
