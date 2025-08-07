@@ -116,7 +116,6 @@
         const memberViewStates = {};
         let calendarDate = new Date();
         const timerIntervals = {}; // Store active timer intervals
-        const activeTimers = new Map(); // Track active timers for cleanup
 
         function getLocalDateString(date) {
             const offset = date.getTimezoneOffset();
@@ -224,14 +223,11 @@
             Object.keys(timerIntervals).forEach(key => {
                 clearInterval(timerIntervals[key]);
             });
-            Object.clear = function() {
-                for (let key in this) {
-                    if (this.hasOwnProperty(key)) {
-                        delete this[key];
-                    }
+            for (let key in timerIntervals) {
+                if (timerIntervals.hasOwnProperty(key)) {
+                    delete timerIntervals[key];
                 }
-            };
-            Object.clear.call(timerIntervals);
+            }
 
             membersContainer.innerHTML = '';
             if (members.length === 0) {
@@ -249,7 +245,6 @@
 
                 const selectedDate = memberViewStates[member.id] || TODAY_STRING;
                 const goalsForSelectedDate = (member.dailyTasks?.[selectedDate] || []).sort((a, b) => {
-                    // Sort by running status first, then by completion
                     if (a.isRunning !== b.isRunning) return b.isRunning - a.isRunning;
                     return a.completed - b.completed;
                 });
@@ -257,12 +252,7 @@
                 const totalTasks = goalsForSelectedDate.length;
                 const completedTasks = goalsForSelectedDate.filter(g => g.completed).length;
                 const progressPercentage = totalTasks === 0 ? 0 : (completedTasks / totalTasks) * 100;
-
-                // Calculate total time for the day
-                const totalTimeSpentToday = goalsForSelectedDate.reduce((total, goal) => {
-                    return total + getTotalTimeSpent(goal);
-                }, 0);
-
+                const totalTimeSpentToday = goalsForSelectedDate.reduce((total, goal) => total + getTotalTimeSpent(goal), 0);
                 const runningGoals = goalsForSelectedDate.filter(g => g.isRunning).length;
 
                 const goalsHtml = totalTasks > 0
@@ -304,13 +294,11 @@
                         <h3 class="text-2xl font-bold text-indigo-700">${member.name}</h3>
                         <button class="delete-member-btn text-slate-400 hover:text-red-600 text-2xl font-bold" title="Delete Member">&times;</button>
                     </div>
-
                     <div class="flex items-center gap-2 mb-4">
                         <label class="font-semibold text-slate-600">Tasks for:</label>
                         <input type="date" class="member-date-picker p-1 border rounded-md" value="${selectedDate}">
                         ${runningGoals > 0 ? `<span class="text-green-600 text-sm font-semibold ml-2">${runningGoals} timer${runningGoals > 1 ? 's' : ''} running</span>` : ''}
                     </div>
-
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-1 text-sm text-slate-600">
                             <span>Progress</span>
@@ -323,16 +311,13 @@
                             <span>Total time today: <span class="font-bold text-indigo-600">${formatTime(totalTimeSpentToday)}</span></span>
                         </div>
                     </div>
-                    
                     <div class="goals-list flex-grow pr-2 overflow-y-auto" style="min-height: 150px; max-height: 300px;">${goalsHtml}</div>
-
                     <div class="mt-auto pt-4 border-t flex flex-col sm:flex-row gap-2">
                         <input type="text" class="new-goal-input flex-grow p-2 border rounded-lg" placeholder="Add a new goal..." onkeypress="if(event.key==='Enter') this.nextElementSibling.click()">
                         <button class="add-goal-btn bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-800 transition-colors">Add Goal</button>
                     </div>`;
                 membersContainer.appendChild(memberCard);
 
-                // Start timers for running goals
                 goalsForSelectedDate.forEach(goal => {
                     if (goal.isRunning) {
                         startTimerDisplay(member.id, selectedDate, goal.id);
@@ -345,21 +330,10 @@
             }
         }
 
-        // TIMER FUNCTIONS
         function startTimerDisplay(memberId, date, goalId) {
             const intervalKey = `${memberId}_${date}_${goalId}`;
-            
-            // Clear existing interval if any
-            if (timerIntervals[intervalKey]) {
-                clearInterval(timerIntervals[intervalKey]);
-            }
-
-            // Start new interval
-            timerIntervals[intervalKey] = setInterval(() => {
-                updateTimerDisplay(memberId, date, goalId);
-            }, 1000);
-
-            // Initial update
+            if (timerIntervals[intervalKey]) clearInterval(timerIntervals[intervalKey]);
+            timerIntervals[intervalKey] = setInterval(() => updateTimerDisplay(memberId, date, goalId), 1000);
             updateTimerDisplay(memberId, date, goalId);
         }
 
@@ -374,23 +348,208 @@
         function updateTimerDisplay(memberId, date, goalId) {
             const member = allMembersData.find(m => m.id === memberId);
             if (!member || !member.dailyTasks?.[date]) return;
-
             const goal = member.dailyTasks[date].find(g => g.id === goalId);
             if (!goal || !goal.isRunning) {
                 stopTimerDisplay(memberId, date, goalId);
                 return;
             }
-
             const timerElement = document.getElementById(`timer-${goalId}`);
             if (timerElement) {
-                const totalTime = getTotalTimeSpent(goal);
-                timerElement.textContent = formatTime(totalTime);
+                timerElement.textContent = formatTime(getTotalTimeSpent(goal));
             }
         }
 
-        // Timer action handler
         async function handleTimerAction(memberDocRef, goalDate, goalId, action) {
             try {
                 await runTransaction(db, async (transaction) => {
                     const memberDoc = await transaction.get(memberDocRef);
-                    if (!memberDoc.exists()) throw "Document
+                    if (!memberDoc.exists()) throw "Document does not exist!";
+                    const data = memberDoc.data();
+                    const tasks = data.dailyTasks || {};
+                    const currentGoals = tasks[goalDate] || [];
+                    const goalIndex = currentGoals.findIndex(g => g.id === goalId);
+                    if (goalIndex === -1) throw "Goal not found!";
+                    
+                    const updatedGoals = [...currentGoals];
+                    const goal = { ...updatedGoals[goalIndex] };
+                    const now = Date.now();
+                    
+                    switch (action) {
+                        case 'start':
+                            updatedGoals.forEach((g, index) => {
+                                if (g.isRunning && index !== goalIndex) {
+                                    g.totalTime = (g.totalTime || 0) + (now - g.startTime);
+                                    g.isRunning = false;
+                                    g.startTime = null;
+                                }
+                            });
+                            goal.isRunning = true;
+                            goal.startTime = now;
+                            showNotification(`Timer started for: ${goal.text}`);
+                            break;
+                        case 'stop':
+                            if (goal.isRunning) {
+                                goal.totalTime = (goal.totalTime || 0) + (now - goal.startTime);
+                            }
+                            goal.isRunning = false;
+                            goal.startTime = null;
+                            showNotification(`Timer stopped for: ${goal.text}`);
+                            break;
+                        case 'complete':
+                            if (goal.isRunning) {
+                                goal.totalTime = (goal.totalTime || 0) + (now - goal.startTime);
+                            }
+                            goal.isRunning = false;
+                            goal.startTime = null;
+                            goal.completed = true;
+                            goal.completedTime = now;
+                            showNotification(`Goal completed: ${goal.text}! Time spent: ${formatTime(goal.totalTime || 0)}`, 'success');
+                            break;
+                    }
+                    updatedGoals[goalIndex] = goal;
+                    transaction.update(memberDocRef, { [`dailyTasks.${goalDate}`]: updatedGoals });
+                });
+            } catch (error) {
+                console.error('Timer action failed:', error);
+                showNotification('Timer action failed. Please try again.', 'error');
+            }
+        }
+
+        function handleCalendarEvents(e) {
+            if (e.target.closest('#prev-month-btn')) {
+                calendarDate.setMonth(calendarDate.getMonth() - 1);
+                renderApp();
+            }
+            if (e.target.closest('#next-month-btn')) {
+                calendarDate.setMonth(calendarDate.getMonth() + 1);
+                renderApp();
+            }
+            const dayCell = e.target.closest('.calendar-day');
+            if (dayCell) {
+                const date = dayCell.dataset.date;
+                allMembersData.forEach(member => { memberViewStates[member.id] = date; });
+                renderMembers(allMembersData);
+            }
+        }
+
+        async function handleMemberEvents(e) {
+            const memberCard = e.target.closest('.bg-white[data-id]');
+            if (!memberCard) return;
+
+            const memberId = memberCard.dataset.id;
+            const memberDocRef = doc(db, 'members', memberId);
+
+            if (e.target.classList.contains('member-date-picker')) {
+                memberViewStates[memberId] = e.target.value;
+                renderMembers(allMembersData);
+                return;
+            }
+            
+            if (e.target.closest('.delete-member-btn')) {
+                if (confirm('Are you sure you want to delete this member?')) {
+                    try { await deleteDoc(memberDocRef); showNotification('Member deleted'); }
+                    catch (error) { console.error('Failed to delete member:', error); showNotification('Failed to delete member', 'error'); }
+                }
+                return;
+            }
+            
+            if (e.target.classList.contains('add-goal-btn')) {
+                const input = memberCard.querySelector('.new-goal-input');
+                const text = input.value.trim();
+                const date = memberCard.querySelector('.member-date-picker').value;
+                if (text && date) {
+                    try {
+                        const newGoal = { id: generateGoalId(), text, completed: false, startTime: null, totalTime: 0, isRunning: false, completedTime: null, createdAt: Date.now() };
+                        await updateDoc(memberDocRef, { [`dailyTasks.${date}`]: arrayUnion(newGoal) });
+                        input.value = '';
+                        showNotification('Goal added');
+                    } catch (error) { console.error('Failed to add goal:', error); showNotification('Failed to add goal', 'error'); }
+                }
+                return;
+            }
+            
+            const goalItem = e.target.closest('[data-goal-id]');
+            if (!goalItem) return;
+            const { goalId, goalDate } = goalItem.dataset;
+
+            if (e.target.closest('.timer-control-btn')) {
+                await handleTimerAction(memberDocRef, goalDate, goalId, e.target.closest('.timer-control-btn').dataset.action);
+                return;
+            }
+
+            if (e.target.classList.contains('goal-checkbox')) {
+                try {
+                    await runTransaction(db, async (transaction) => {
+                        const memberDoc = await transaction.get(memberDocRef);
+                        if (!memberDoc.exists()) throw "Doc does not exist!";
+                        const tasks = memberDoc.data().dailyTasks || {};
+                        const goals = tasks[goalDate] || [];
+                        const goalIndex = goals.findIndex(g => g.id === goalId);
+                        if (goalIndex === -1) throw "Goal not found!";
+                        const updatedGoals = [...goals];
+                        const goal = { ...updatedGoals[goalIndex] };
+                        const now = Date.now();
+                        
+                        goal.completed = !goal.completed;
+                        if (goal.completed) {
+                            if (goal.isRunning) {
+                                goal.totalTime = (goal.totalTime || 0) + (now - goal.startTime);
+                                goal.isRunning = false;
+                                goal.startTime = null;
+                            }
+                            goal.completedTime = now;
+                        } else {
+                            goal.completedTime = null;
+                        }
+                        updatedGoals[goalIndex] = goal;
+                        transaction.update(memberDocRef, { [`dailyTasks.${goalDate}`]: updatedGoals });
+                    });
+                } catch (error) { console.error('Failed to toggle goal:', error); showNotification('Failed to update goal', 'error'); }
+                return;
+            }
+
+            if (e.target.closest('.delete-goal-btn')) {
+                if (confirm('Are you sure you want to delete this goal?')) {
+                    try {
+                        await runTransaction(db, async (transaction) => {
+                            const memberDoc = await transaction.get(memberDocRef);
+                            const tasks = memberDoc.data().dailyTasks || {};
+                            const updatedGoals = (tasks[goalDate] || []).filter(g => g.id !== goalId);
+                            transaction.update(memberDocRef, { [`dailyTasks.${goalDate}`]: updatedGoals });
+                        });
+                        showNotification('Goal deleted');
+                    } catch (error) { console.error('Failed to delete goal:', error); showNotification('Failed to delete goal', 'error'); }
+                }
+            }
+        }
+
+        // EVENT LISTENERS
+        addMemberBtn.addEventListener('click', async () => {
+            const name = newMemberNameInput.value.trim();
+            if (name) {
+                try {
+                    await addDoc(collection(db, 'members'), { name, createdAt: serverTimestamp(), dailyTasks: {} });
+                    newMemberNameInput.value = '';
+                    showNotification(`Welcome, ${name}!`);
+                } catch (error) { console.error('Error adding member:', error); showNotification('Failed to add member', 'error'); }
+            } else { showNotification('Please enter a name', 'error'); }
+        });
+        newMemberNameInput.addEventListener('keypress', (e) => e.key === 'Enter' && addMemberBtn.click());
+        masterCalendarContainer.addEventListener('click', handleCalendarEvents);
+        membersContainer.addEventListener('click', handleMemberEvents);
+        membersContainer.addEventListener('change', handleMemberEvents);
+
+        // FIREBASE LISTENER
+        onSnapshot(collection(db, 'members'), (snapshot) => {
+            allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+            renderApp();
+        }, (error) => {
+            console.error('Firebase listener error:', error);
+            showNotification('Connection error. Please refresh.', 'error');
+        });
+
+        window.addEventListener('beforeunload', () => Object.keys(timerIntervals).forEach(key => clearInterval(timerIntervals[key])));
+        renderApp();
+    </script>
+</body>
+</html>
