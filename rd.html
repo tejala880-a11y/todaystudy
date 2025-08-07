@@ -3,95 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RadikaChat</title>
-    <!-- Tailwind CSS for styling -->
+    <title>Tejal's Study Group</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles for the chat application */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom scrollbar for a cleaner look */
-        #messages-container::-webkit-scrollbar {
-            width: 8px;
-        }
-        #messages-container::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        #messages-container::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 10px;
-        }
-        #messages-container::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
-        }
-        /* New style for the chat background with a subtle paw pattern */
-        .chat-bg-pattern {
-            background-color: #f8fafc; /* A light grey fallback */
-            background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100"%3E%3Cpath d="M25 50 A12.5 12.5 0 1 1 25 75 A12.5 12.5 0 1 1 25 50 M50 50 A12.5 12.5 0 1 1 50 75 A12.5 12.5 0 1 1 50 50 M75 50 A12.5 12.5 0 1 1 75 75 A12.5 12.5 0 1 1 75 50 M50 25 A25 25 0 1 1 50 25" fill="%23e2e8f0"/%3E%3C/svg%3E');
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .goals-list::-webkit-scrollbar { width: 6px; }
+        .goals-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .goals-list::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        .goals-list::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .goal-item:hover .goal-actions { opacity: 1; }
+        .calendar-day.has-tasks { background-color: #e0e7ff; }
+        .calendar-day.is-today { box-shadow: 0 0 0 2px #4f46e5; }
     </style>
 </head>
-<body class="bg-slate-100 flex items-center justify-center h-screen">
+<body class="bg-slate-100 text-slate-800">
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-900">Tejal's Study Group</h1>
+            <p class="text-slate-600 mt-2">A shared space for our daily goals and progress.</p>
+        </header>
 
-    <div id="app-container" class="w-full max-w-2xl h-full md:h-[90vh] md:max-h-[700px] bg-white rounded-lg shadow-2xl flex flex-col">
-
-        <!-- Login View -->
-        <div id="login-view" class="flex flex-col items-center justify-center h-full p-8 text-center">
-            <!-- Dog picture added to the login screen -->
-            <img src="https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?q=80&w=250&auto=format&fit=crop" 
-                 alt="A cute dog wearing glasses" 
-                 class="w-40 h-40 object-cover rounded-full mb-6 shadow-lg"
-                 onerror="this.onerror=null;this.src='https://placehold.co/150x150/e2e8f0/64748b?text=🐶';">
-            <h1 class="text-4xl font-bold text-slate-800 mb-2">Welcome to RadikaChat</h1>
-            <p class="text-slate-500 mb-8">Connect and chat in real-time.</p>
-            <button id="login-button" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors shadow-md">
-                Sign In to Chat
-            </button>
+        <div id="members-container" class="grid grid-cols-1 md:grid-cols-1 gap-8 mb-8"></div>
+        <div id="loader" class="text-center py-10">
+            <p>Loading members...</p>
         </div>
 
-        <!-- Chat View -->
-        <div id="chat-view" class="hidden flex-1 flex-col">
-            <!-- Header -->
-            <header class="bg-slate-800 text-white p-4 rounded-t-lg shadow-md flex justify-between items-center">
-                <h1 class="text-2xl font-bold">RadikaChat</h1>
-                <div class="text-right">
-                     <p class="text-xs text-slate-300">Your User ID:</p>
-                     <p id="user-id-display" class="text-sm font-mono select-all"></p>
-                </div>
-            </header>
+        <div id="master-calendar-container" class="bg-white p-6 rounded-2xl shadow-lg mb-8"></div>
 
-            <!-- Messages Container with new background -->
-            <main id="messages-container" class="flex-1 p-4 overflow-y-auto chat-bg-pattern">
-                <!-- Messages will be dynamically added here -->
-            </main>
-
-            <!-- Message Input Form -->
-            <footer class="p-4 bg-white border-t border-slate-200 rounded-b-lg">
-                <form id="message-form" class="flex items-center space-x-3">
-                    <input id="message-input" type="text" placeholder="Type your message..." autocomplete="off" class="flex-1 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
-                    <button type="submit" class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:bg-slate-400 disabled:cursor-not-allowed">
-                        Send
-                    </button>
-                </form>
-            </footer>
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+            <h2 class="text-2xl font-semibold mb-4 text-slate-800">Add a New Member</h2>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <input type="text" id="new-member-name" placeholder="Enter your name" class="flex-grow p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                <button id="add-member-btn" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Add Me to the Group
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
-        // Import necessary functions from Firebase SDK
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import {
+            getFirestore, collection, onSnapshot, addDoc, doc,
+            updateDoc, deleteDoc, serverTimestamp, arrayUnion, runTransaction, Timestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // --- Firebase Configuration ---
-        // Use the provided config, but also check for the global variable for robustness.
-        const firebaseConfigFromPrompt = {
+        // =================================================================
+        const firebaseConfig = {
             apiKey: "AIzaSyC8zXcbDNwdm2LMbpzV1KkN3wiTyh_vZ3M",
             authDomain: "o-study-f5081.firebaseapp.com",
             projectId: "o-study-f5081",
@@ -100,153 +59,312 @@
             appId: "1:338420264881:web:c4119859174ab264709790",
             measurementId: "G-8HCPGJ13MH"
         };
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfigFromPrompt;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-radikachat';
+        // =================================================================
 
-        // --- App Initialization ---
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
-        setLogLevel('debug'); // Enable debug logging for Firestore
 
-        // --- DOM Element References ---
-        const loginView = document.getElementById('login-view');
-        const chatView = document.getElementById('chat-view');
-        const loginButton = document.getElementById('login-button');
-        const messagesContainer = document.getElementById('messages-container');
-        const messageForm = document.getElementById('message-form');
-        const messageInput = document.getElementById('message-input');
-        const userIdDisplay = document.getElementById('user-id-display');
+        // --- STATE & HELPERS ---
+        let allMembersData = [];
+        const memberViewStates = {};
+        let calendarDate = new Date();
 
-        let currentUserId = null;
-        let messagesUnsubscribe = null; // To hold the listener cleanup function
-
-        // --- Authentication Logic ---
-        loginButton.addEventListener('click', async () => {
-            try {
-                // Check for a custom token provided by the environment first.
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                    console.log("Signed in with custom token.");
-                } else {
-                    // Fallback to anonymous sign-in.
-                    await signInAnonymously(auth);
-                    console.log("Signed in anonymously.");
-                }
-            } catch (error) {
-                console.error("Authentication failed:", error);
-                // You could show an error message to the user here.
-            }
-        });
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // User is signed in.
-                currentUserId = user.uid;
-                userIdDisplay.textContent = currentUserId;
-                loginView.style.display = 'none';
-                chatView.style.display = 'flex';
-                listenForMessages();
-            } else {
-                // User is signed out.
-                currentUserId = null;
-                loginView.style.display = 'flex';
-                chatView.style.display = 'none';
-                // If we have an active listener, detach it.
-                if (messagesUnsubscribe) {
-                    messagesUnsubscribe();
-                }
-            }
-        });
-
-        // --- Firestore Logic ---
-
-        /**
-         * Listens for real-time updates to the messages collection.
-         */
-        function listenForMessages() {
-            // Path to the public collection for this app instance
-            const messagesCollectionPath = `artifacts/${appId}/public/data/messages`;
-            const q = query(collection(db, messagesCollectionPath));
-
-            messagesUnsubscribe = onSnapshot(q, (querySnapshot) => {
-                const messages = [];
-                querySnapshot.forEach((doc) => {
-                    messages.push({ id: doc.id, ...doc.data() });
-                });
-
-                // Sort messages by timestamp client-side to avoid needing a composite index
-                messages.sort((a, b) => {
-                    const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
-                    const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
-                    return timeA - timeB;
-                });
-
-                displayMessages(messages);
-            }, (error) => {
-                console.error("Error listening to messages:", error);
-            });
+        function getLocalDateString(date) {
+            const offset = date.getTimezoneOffset();
+            const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
+            return adjustedDate.toISOString().split('T')[0];
         }
 
-        /**
-         * Renders messages to the DOM.
-         * @param {Array} messages - An array of message objects.
-         */
-        function displayMessages(messages) {
-            messagesContainer.innerHTML = ''; // Clear existing messages
-            messages.forEach(msg => {
-                const messageElement = document.createElement('div');
-                messageElement.classList.add('mb-3', 'p-3', 'rounded-lg', 'max-w-xs', 'md:max-w-md', 'break-words');
+        // NEW: Helper function to format duration in seconds into a readable string
+        function formatDuration(seconds) {
+            if (!seconds || seconds <= 0) return "";
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            let parts = [];
+            if (h > 0) parts.push(`${h}h`);
+            if (m > 0) parts.push(`${m}m`);
+            if (s > 0) parts.push(`${s}s`);
+            return `(${parts.join(' ')})`;
+        }
 
-                const isCurrentUser = msg.uid === currentUserId;
+        const TODAY_STRING = getLocalDateString(new Date());
 
-                // Style messages based on the sender
-                if (isCurrentUser) {
-                    messageElement.classList.add('bg-blue-600', 'text-white', 'ml-auto');
-                } else {
-                    messageElement.classList.add('bg-slate-200', 'text-slate-800', 'mr-auto');
-                }
+        // --- DOM ELEMENTS ---
+        const addMemberBtn = document.getElementById('add-member-btn');
+        const newMemberNameInput = document.getElementById('new-member-name');
+        const membersContainer = document.getElementById('members-container');
+        const masterCalendarContainer = document.getElementById('master-calendar-container');
+        const loader = document.getElementById('loader');
+        
+        // --- RENDER FUNCTIONS ---
+        function renderApp() {
+            const tasksByDate = {};
+            allMembersData.forEach(member => {
+                Object.keys(member.dailyTasks || {}).forEach(date => {
+                    if (!tasksByDate[date]) { tasksByDate[date] = 0; }
+                    tasksByDate[date] += member.dailyTasks[date].length;
+                });
+            });
 
-                // Format timestamp for display
-                const timestamp = msg.createdAt ? new Date(msg.createdAt.toMillis()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-                
-                // Create message content
-                messageElement.innerHTML = `
-                    <p class="text-sm">${msg.text}</p>
-                    <p class="text-xs mt-1 opacity-70 text-right">${timestamp}</p>
+            renderMasterCalendar(calendarDate.getFullYear(), calendarDate.getMonth(), tasksByDate);
+            renderMembers(allMembersData);
+        }
+
+        function renderMasterCalendar(year, month, tasksByDate) {
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            let calendarHtml = `
+                <div class="flex items-center justify-between mb-4">
+                    <button id="prev-month-btn" class="p-2 rounded-full hover:bg-slate-100">&lt;</button>
+                    <h2 class="text-xl font-bold text-slate-800">${monthNames[month]} ${year}</h2>
+                    <button id="next-month-btn" class="p-2 rounded-full hover:bg-slate-100">&gt;</button>
+                </div>
+                <div class="grid grid-cols-7 gap-2 text-center text-sm font-semibold text-slate-500">
+                    <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                </div>
+                <div class="grid grid-cols-7 gap-2 mt-2">
+            `;
+            
+            for (let i = 0; i < firstDay; i++) { calendarHtml += `<div></div>`; }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = getLocalDateString(new Date(year, month, day));
+                const hasTasks = tasksByDate[dateStr] > 0;
+                const isToday = dateStr === TODAY_STRING;
+                calendarHtml += `
+                    <div class="calendar-day cursor-pointer p-2 rounded-lg text-center ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'is-today' : ''} hover:bg-indigo-200" data-date="${dateStr}">
+                        ${day}
+                    </div>
                 `;
+            }
 
-                messagesContainer.appendChild(messageElement);
-            });
-
-            // Scroll to the bottom to show the latest message
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            calendarHtml += `</div>`;
+            masterCalendarContainer.innerHTML = calendarHtml;
         }
 
-        /**
-         * Handles the message form submission.
-         */
-        messageForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const messageText = messageInput.value.trim();
-
-            if (messageText && currentUserId) {
-                const messagesCollectionPath = `artifacts/${appId}/public/data/messages`;
-                try {
-                    // Add a new document with a generated id.
-                    await addDoc(collection(db, messagesCollectionPath), {
-                        text: messageText,
-                        uid: currentUserId,
-                        createdAt: serverTimestamp() // Use server time for consistency
-                    });
-                    // Clear the input field after sending
-                    messageInput.value = '';
-                } catch (error) {
-                    console.error("Error sending message: ", error);
-                }
+        function renderMembers(members) {
+            membersContainer.innerHTML = '';
+            if (members.length === 0) {
+                 if (loader.style.display !== 'none') {
+                     loader.style.display = 'none';
+                 }
+                 membersContainer.innerHTML = `<p class="text-center text-slate-500 col-span-1">No members yet. Be the first to join!</p>`
+                return;
             }
-        });
 
+            members.forEach(member => {
+                const memberCard = document.createElement('div');
+                memberCard.className = 'bg-white p-6 rounded-2xl shadow-lg flex flex-col';
+                memberCard.setAttribute('data-id', member.id);
+
+                const selectedDate = memberViewStates[member.id] || TODAY_STRING;
+                const goalsForSelectedDate = (member.dailyTasks?.[selectedDate] || []).sort((a, b) => a.completed - b.completed);
+
+                const totalTasks = goalsForSelectedDate.length;
+                const completedTasks = goalsForSelectedDate.filter(g => g.completed).length;
+                const progressPercentage = totalTasks === 0 ? 0 : (completedTasks / totalTasks) * 100;
+
+                // MODIFIED: Logic for rendering each goal item with new buttons and info
+                const goalsHtml = totalTasks > 0
+                    ? goalsForSelectedDate.map(goal => {
+                        const isStarted = !!goal.startTime;
+                        const timeTakenDisplay = goal.completed && goal.timeTaken ? `<span class="text-xs text-indigo-500 ml-2 font-medium">${formatDuration(goal.timeTaken)}</span>` : '';
+                        
+                        // NEW: Start button logic
+                        const startButtonHtml = !isStarted && !goal.completed ? `
+                            <button class="start-goal-btn text-slate-400 hover:text-green-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            </button>` : `<div class="w-[20px]"></div>`; // Placeholder for alignment
+
+                        return `
+                        <div class="goal-item flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition group" data-goal-id="${goal.id}" data-goal-date="${selectedDate}">
+                            <label class="flex items-center cursor-pointer flex-grow">
+                                <input type="checkbox" class="goal-checkbox h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500" 
+                                    ${goal.completed ? 'checked' : ''} 
+                                    ${!isStarted ? 'disabled' : ''}  /* NEW: Disable checkbox if not started */
+                                >
+                                <span class="ml-3 text-slate-700 ${goal.completed ? 'line-through text-slate-400' : ''}">${goal.text}</span>
+                                ${timeTakenDisplay} </label>
+                            <div class="goal-actions flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                ${startButtonHtml} <button class="delete-goal-btn text-slate-400 hover:text-red-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </div>
+                        </div>`
+                    }).join('')
+                    : `<p class="text-slate-400 p-3">No goals for ${selectedDate}.</p>`;
+
+                memberCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-2xl font-bold text-indigo-700">${member.name}</h3>
+                        <button class="delete-member-btn text-slate-400 hover:text-red-600 text-2xl font-bold">&times;</button>
+                    </div>
+
+                    <div class="flex items-center gap-2 mb-4">
+                        <label class="font-semibold text-slate-600">Tasks for:</label>
+                        <input type="date" class="member-date-picker p-1 border rounded-md" value="${selectedDate}">
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-1 text-sm text-slate-600">
+                            <span>Progress</span>
+                            <span>${completedTasks} / ${totalTasks}</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5">
+                            <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" style="width: ${progressPercentage}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="goals-list flex-grow pr-2 overflow-y-auto" style="min-height: 150px; max-height: 300px;">${goalsHtml}</div>
+
+                    <div class="mt-auto pt-4 border-t flex flex-col sm:flex-row gap-2">
+                        <input type="text" class="new-goal-input flex-grow p-2 border rounded-lg" placeholder="Add a new goal...">
+                        <button class="add-goal-btn bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg">Add Goal</button>
+                    </div>`;
+                membersContainer.appendChild(memberCard);
+            });
+        }
+        
+        // --- EVENT HANDLERS ---
+        function handleCalendarEvents(e) {
+            if (e.target.closest('#prev-month-btn')) {
+                calendarDate.setMonth(calendarDate.getMonth() - 1);
+                renderApp();
+            }
+            if (e.target.closest('#next-month-btn')) {
+                calendarDate.setMonth(calendarDate.getMonth() + 1);
+                renderApp();
+            }
+            const dayCell = e.target.closest('.calendar-day');
+            if (dayCell) {
+                const date = dayCell.dataset.date;
+                allMembersData.forEach(member => { memberViewStates[member.id] = date; });
+                renderMembers(allMembersData);
+            }
+        }
+
+        async function handleMemberEvents(e) {
+            const memberCard = e.target.closest('.bg-white[data-id]');
+            if (!memberCard) return;
+
+            const memberId = memberCard.dataset.id;
+            const memberDocRef = doc(db, 'members', memberId);
+
+            if (e.target.classList.contains('member-date-picker')) {
+                memberViewStates[memberId] = e.target.value;
+                renderMembers(allMembersData);
+                return;
+            }
+            if (e.target.closest('.delete-member-btn')) {
+                if (confirm('Are you sure?')) await deleteDoc(memberDocRef);
+                return;
+            }
+            // MODIFIED: Adding a new goal now includes start and end time fields
+            if (e.target.classList.contains('add-goal-btn')) {
+                const text = memberCard.querySelector('.new-goal-input').value.trim();
+                const date = memberCard.querySelector('.member-date-picker').value;
+                if (text && date) {
+                    const newGoal = { 
+                        id: self.crypto.randomUUID(), 
+                        text, 
+                        completed: false, 
+                        startTime: null, // NEW
+                        endTime: null,   // NEW
+                        timeTaken: null  // NEW
+                    };
+                    await updateDoc(memberDocRef, { [`dailyTasks.${date}`]: arrayUnion(newGoal) });
+                    memberCard.querySelector('.new-goal-input').value = '';
+                }
+                return;
+            }
+            
+            const goalItem = e.target.closest('[data-goal-id]');
+            if (!goalItem) return;
+            const { goalId, goalDate } = goalItem.dataset;
+
+            // MODIFIED: Transaction logic is now much more complex to handle timing
+            try {
+                 await runTransaction(db, async (transaction) => {
+                    const memberDoc = await transaction.get(memberDocRef);
+                    if (!memberDoc.exists()) throw "Doc does not exist!";
+                    
+                    const tasks = memberDoc.data().dailyTasks || {};
+                    const currentGoals = tasks[goalDate] || [];
+                    let targetGoal = currentGoals.find(g => g.id === goalId);
+                    if (!targetGoal) return;
+
+                    let updatedGoals;
+
+                    if (e.target.closest('.delete-goal-btn')) {
+                       updatedGoals = currentGoals.filter(g => g.id !== goalId);
+                    } else if (e.target.closest('.start-goal-btn')) {
+                        // NEW: Handle starting a goal
+                        updatedGoals = currentGoals.map(g => 
+                            g.id === goalId ? { ...g, startTime: serverTimestamp() } : g
+                        );
+                    } else if (e.target.classList.contains('goal-checkbox')) {
+                        const isChecking = e.target.checked;
+                        if (isChecking) {
+                            // Complete the goal, calculate time
+                            const startTime = targetGoal.startTime.toDate(); // Convert Firestore timestamp to JS Date
+                            const endTime = new Date(); // Current time
+                            const durationSeconds = Math.round((endTime.getTime() - startTime.getTime()) / 1000);
+                            
+                            updatedGoals = currentGoals.map(g => g.id === goalId ? { 
+                                ...g, 
+                                completed: true, 
+                                endTime: Timestamp.fromDate(endTime),
+                                timeTaken: durationSeconds 
+                            } : g);
+
+                        } else {
+                            // Un-complete the goal, reset time
+                             updatedGoals = currentGoals.map(g => g.id === goalId ? { 
+                                ...g, 
+                                completed: false, 
+                                endTime: null, 
+                                timeTaken: null 
+                            } : g);
+                        }
+                    } else { 
+                        return; 
+                    }
+
+                    tasks[goalDate] = updatedGoals;
+                    transaction.update(memberDocRef, { dailyTasks: tasks });
+                });
+            } catch (error) { console.error("Transaction failed: ", error); }
+        }
+
+        // --- INITIALIZATION ---
+        function main() {
+            onSnapshot(collection(db, 'members'), (snapshot) => {
+                loader.style.display = 'none';
+                allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                    .sort((a, b) => a.name.localeCompare(b.name));
+                renderApp();
+            }, (error) => {
+                console.error("Error: ", error);
+                loader.innerHTML = "Error loading data.";
+            });
+
+            addMemberBtn.addEventListener('click', () => {
+                const name = newMemberNameInput.value.trim();
+                if (name) {
+                    addDoc(collection(db, 'members'), { name, dailyTasks: {}, createdAt: serverTimestamp() });
+                    newMemberNameInput.value = '';
+                }
+            });
+            masterCalendarContainer.addEventListener('click', handleCalendarEvents);
+            membersContainer.addEventListener('click', handleMemberEvents);
+            // 'change' event still needed for the date picker
+            membersContainer.addEventListener('change', handleMemberEvents); 
+        }
+        
+        main();
     </script>
 </body>
 </html>
