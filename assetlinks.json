@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.tejala880_a11y.twa",
+    "sha256_cert_fingerprints": [
+      "A4:B8:E3:BA:CC:E7:62:ED:E9:A3:F7:1F:EC:ED:D0:9C:48:8C:B2:5C:EB:85:D2:5C:4E:24:DB:6D:57:50:3A:80"
+    ]
+  }
+}]
