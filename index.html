@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tejal's Study Group - Enhanced with Timer, Carry-Forward & Avatars</title>
+<title>Tejal's Study Group - Smoother Edition</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
@@ -13,45 +13,70 @@
     background: linear-gradient(270deg,#7c3aed,#06b6d4,#8b5cf6);
     background-size: 600% 600%;
     animation: gradientBG 12s ease infinite;
-    color: white; border-radius: 1rem; box-shadow: 0 8px 20px rgba(124,58,237,0.25);
+    color: white; border-radius: 1.5rem; box-shadow: 0 8px 30px rgba(124,58,237,0.2);
   }
   @keyframes gradientBG {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
   }
-  .card-hover:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 18px 30px rgba(16,185,129,0.06); }
+  
+  /* --- Smoothness Enhancements --- */
+  .card-hover, button, input, select {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card-hover:hover { 
+      transform: translateY(-8px) scale(1.02); 
+      box-shadow: 0 20px 40px rgba(124, 58, 237, 0.15); 
+  }
+  button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  input:focus, select:focus {
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+      border-color: #8b5cf6;
+  }
+  
   .goals-list::-webkit-scrollbar, .messages-container::-webkit-scrollbar { width: 8px; }
-  .goals-list::-webkit-scrollbar-track, .messages-container::-webkit-scrollbar-track { background: #e0e2e7; border-radius: 12px; }
-  .goals-list::-webkit-scrollbar-thumb, .messages-container::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 12px; }
-  .goal-item:hover .delete-goal-btn { opacity: 1; }
-  .calendar-day.has-tasks { background-color: #c7d2fe; font-weight: 600; border-radius: 8px; }
+  .goals-list::-webkit-scrollbar-track, .messages-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 12px; }
+  .goals-list::-webkit-scrollbar-thumb, .messages-container::-webkit-scrollbar-thumb { background: #a78bfa; border-radius: 12px; }
+  .goals-list::-webkit-scrollbar-thumb:hover { background: #8b5cf6; }
+  
+  .goal-item:hover .delete-goal-btn { opacity: 1; transform: scale(1); }
+  .calendar-day.has-tasks { background-color: #e0e7ff; font-weight: 600; border-radius: 8px; }
   .calendar-day.is-today { box-shadow: 0 0 0 2px #7c3aed; }
-  .timer-running { animation: pulse 2.5s infinite; color: #4ade80; }
+  
+  .timer-running { animation: pulse 2.5s infinite ease-in-out; }
   .timer-display { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1rem; }
-  @keyframes pulse { 0%,100%{opacity:1;}50%{opacity:0.6;} }
-  .play-btn, .stop-btn, .complete-btn { width: 34px; height: 34px; border-radius: 50%; cursor: pointer; transition: all 0.25s; display:flex; align-items:center; justify-content:center; }
+  @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.6; } }
+
+  .play-btn, .stop-btn, .complete-btn { width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display:flex; align-items:center; justify-content:center; }
   .play-btn { background-color: #10b981; color: white; }
   .stop-btn { background-color: #ef4444; color: white; }
   .complete-btn { background-color: #8b5cf6; color: white; }
-  .delete-goal-btn { opacity: 0; transition: opacity 0.3s; }
-  .message { background-color: #f3f4f6; padding: 0.75rem 1rem; border-radius: 1rem; max-width: 85%; }
-  .message.sent { background-color: #e0e7ff; align-self: flex-end; }
-  .avatar { width:48px; height:48px; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center; font-weight:700; color:white; }
+  .delete-goal-btn { opacity: 0; transform: scale(0.8); transition: all 0.3s ease; }
+  
+  .message { background-color: #f1f5f9; padding: 0.75rem 1rem; border-radius: 1.25rem; max-width: 85%; }
+  .message.sent { background-color: #e0e7ff; align-self: flex-end; border-bottom-right-radius: 0.5rem; }
+  .message.received { border-bottom-left-radius: 0.5rem; }
+
+  .avatar { width:48px; height:48px; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center; font-weight:700; color:white; border: 2px solid rgba(255,255,255,0.5); }
   .avatar.small { width:36px; height:36px; }
   .link-bubble { color:#0f172a; text-decoration:underline; }
-  .fade-in { animation: fadeIn 0.45s ease both; }
-  @keyframes fadeIn { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  .fade-in { animation: fadeIn 0.6s ease-out both; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
 </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
 
 <div class="container mx-auto max-w-5xl px-6 py-8">
 
-  <header class="text-center mb-8 p-6 md:py-8">
+  <header class="text-center mb-8 p-6 md:p-8">
     <h1 class="text-4xl md:text-5xl font-extrabold tracking-wide mb-2">Tejal's Study Group</h1>
     <p class="text-indigo-100 font-medium text-base md:text-lg mb-2">Shared daily goals, timers, and a link-first messenger.</p>
-    <div class="text-sm text-indigo-200">Upload an avatar or auto-generate initials for each member. Incomplete goals can be carried forward to the next day for the whole group.</div>
+    <div class="text-sm text-indigo-200">Auto-generated avatars for each member. Incomplete goals can be carried forward to the next day for the whole group.</div>
   </header>
 
   <div id="members-container" class="grid grid-cols-1 gap-8 mb-8"></div>
@@ -62,18 +87,18 @@
 
   <div id="messenger-section" class="bg-white p-6 rounded-3xl shadow-xl mb-10 card-hover">
     <h2 class="text-2xl font-semibold mb-4 text-indigo-700 flex items-center gap-3">Group Messenger
-      <span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">Links preferred</span>
+      <span class="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full">Links preferred</span>
     </h2>
     <div class="flex items-center gap-3 mb-4">
         <label for="messenger-user-select" class="font-semibold text-indigo-600">I am:</label>
         <select id="messenger-user-select" class="p-2 border border-indigo-300 rounded-lg">
             <option value="">-- Select your name --</option>
         </select>
-        <button id="toggle-link-mode" class="ml-auto text-sm px-3 py-2 rounded-lg bg-indigo-50 text-indigo-600">Only links: ON</button>
+        <button id="toggle-link-mode" class="ml-auto text-sm px-3 py-2 rounded-lg bg-indigo-100 text-indigo-600">Only links: ON</button>
     </div>
-    <div id="messages-container" class="messages-container h-64 overflow-y-auto p-4 bg-slate-50 rounded-xl mb-4 flex flex-col gap-3"></div>
+    <div id="messages-container" class="messages-container h-64 overflow-y-auto p-4 bg-slate-50 rounded-xl mb-4 flex flex-col gap-4"></div>
     <div class="flex flex-col sm:flex-row gap-3">
-        <input type="text" id="message-input" placeholder="Paste a link here (e.g. https://...)" class="flex-grow p-3 border border-indigo-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition" />
+        <input type="text" id="message-input" placeholder="Paste a link here (e.g. https://...)" class="flex-grow p-3 border border-indigo-300 rounded-xl focus:ring-0 focus:outline-none transition" />
         <button id="send-message-btn" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-700 transition-all duration-300 shadow-md">Send Link</button>
     </div>
   </div>
@@ -81,8 +106,7 @@
   <div class="bg-white p-6 rounded-3xl shadow-xl card-hover">
     <h2 class="text-2xl font-semibold mb-5 text-indigo-700">Add a New Member</h2>
     <div class="flex flex-col sm:flex-row gap-4 items-center">
-      <input type="text" id="new-member-name" placeholder="Enter your name" class="flex-grow p-3 border border-indigo-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition" />
-      <input type="file" id="new-member-avatar-file" accept="image/*" class="p-2" />
+      <input type="text" id="new-member-name" placeholder="Enter your name" class="flex-grow p-3 border border-indigo-300 rounded-xl focus:ring-0 focus:outline-none transition" />
       <button id="gen-avatar-btn" class="bg-indigo-100 text-indigo-700 px-3 py-2 rounded-xl">Generate Avatar</button>
       <button id="add-member-btn" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-700 transition-all duration-300 shadow-md">Add Me to the Group</button>
     </div>
@@ -94,7 +118,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, runTransaction, writeBatch, query, orderBy, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, runTransaction, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Firebase configuration (kept same as original)
 const firebaseConfig = {
@@ -162,9 +186,9 @@ function renderMasterCalendar(year, month, tasksByDate) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   let calendarHtml = `
     <div class="flex items-center justify-between mb-4 px-2">
-      <button id="prev-month-btn" class="p-2 rounded-full hover:bg-indigo-100 transition" title="Previous Month">&lt;</button>
+      <button id="prev-month-btn" class="p-2 rounded-full hover:bg-indigo-100">&lt;</button>
       <h2 class="text-xl font-bold text-indigo-700">${monthNames[month]} ${year}</h2>
-      <button id="next-month-btn" class="p-2 rounded-full hover:bg-indigo-100 transition" title="Next Month">&gt;</button>
+      <button id="next-month-btn" class="p-2 rounded-full hover:bg-indigo-100">&gt;</button>
     </div>
     <div class="grid grid-cols-7 gap-2 text-center text-sm font-semibold text-indigo-500 px-2">
       <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
@@ -175,11 +199,7 @@ function renderMasterCalendar(year, month, tasksByDate) {
     const dateStr = getLocalDateString(new Date(year, month, day));
     const hasTasks = tasksByDate[dateStr] > 0;
     const isToday = dateStr === TODAY_STRING;
-    calendarHtml += `
-      <div class="calendar-day cursor-pointer p-2 rounded-lg ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'is-today' : ''} hover:bg-indigo-200" data-date="${dateStr}" title="Click to view tasks for ${dateStr}">
-        ${day}
-      </div>
-    `;
+    calendarHtml += `<div class="calendar-day cursor-pointer p-2 rounded-lg ${hasTasks ? 'has-tasks' : ''} ${isToday ? 'is-today' : ''} hover:bg-indigo-200" data-date="${dateStr}">${day}</div>`;
   }
   calendarHtml += '</div>';
   document.getElementById('master-calendar-container').innerHTML = calendarHtml;
@@ -193,13 +213,14 @@ function renderMembers(members) {
     container.innerHTML = '<p class="text-center text-indigo-400 col-span-1">No members yet. Be the first to join!</p>';
     return;
   }
-  members.forEach(member => {
+  members.forEach((member, index) => {
     const memberCard = document.createElement('div');
     memberCard.className = 'bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-3xl shadow-lg flex flex-col fade-in';
+    memberCard.style.animationDelay = `${index * 100}ms`;
     memberCard.setAttribute('data-id', member.id);
     const selectedDate = memberViewStates[member.id] || TODAY_STRING;
     const goalsForSelectedDate = (member.dailyTasks?.[selectedDate] || []).sort((a,b) => {
-      if(a.isRunning !== b.isRunning) return b.isRunning - a.isRunning;
+      if(a.isRunning !== b.isRunning) return b.isRunning ? -1 : 1;
       return a.completed - b.completed;
     });
     const totalTasks = goalsForSelectedDate.length;
@@ -212,168 +233,107 @@ function renderMembers(members) {
       `<div class="avatar small" style="background:${member.avatarColor || '#7c3aed'}">${(member.name||'U').split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase()}</div>`;
 
     const goalsHtml = totalTasks > 0
-      ? goalsForSelectedDate.map(goal => {
+      ? goalsForSelectedDate.map((goal, goalIndex) => {
         const totalTime = getTotalTimeSpent(goal);
         const isRunning = goal.isRunning || false;
         const timerDisplay = formatTime(totalTime);
         const disabledCheckbox = isRunning ? 'disabled' : '';
         return `
-        <div class="goal-item flex items-center justify-between p-3 rounded-xl hover:bg-indigo-100 transition group ${isRunning ? 'timer-running bg-green-50' : ''}" data-goal-id="${goal.id}" data-goal-date="${selectedDate}">
+        <div class="goal-item flex items-center justify-between p-3 rounded-xl hover:bg-indigo-100 group ${isRunning ? 'timer-running bg-green-50' : ''} fade-in" style="animation-delay: ${goalIndex * 50}ms" data-goal-id="${goal.id}" data-goal-date="${selectedDate}">
           <div class="flex items-center flex-grow">
-            <input type="checkbox" class="goal-checkbox h-5 w-5 rounded text-indigo-600" ${goal.completed ? 'checked' : ''} ${disabledCheckbox} />
+            <input type="checkbox" class="goal-checkbox h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500" ${goal.completed ? 'checked' : ''} ${disabledCheckbox} />
             <div class="ml-3 flex-grow">
-              <span class="${goal.completed ? 'line-through text-indigo-300' : 'text-indigo-900'} font-semibold">${goal.text}</span>
-              <div class="text-xs text-indigo-400 mt-1">
-                <span class="timer-display ${isRunning ? 'text-green-600' : 'text-indigo-500'}">${timerDisplay}</span>
+              <span class="${goal.completed ? 'line-through text-indigo-400' : 'text-slate-800'} font-semibold">${goal.text}</span>
+              <div class="text-xs text-indigo-500 mt-1">
+                <span class="timer-display ${isRunning ? 'text-green-600 font-bold' : ''}">${timerDisplay}</span>
                 ${goal.completedTime ? `<span class="ml-2 text-blue-500">Completed: ${new Date(goal.completedTime).toLocaleTimeString()}</span>` : ''}
               </div>
             </div>
           </div>
           <div class="flex items-center gap-2 ml-3">
             ${!goal.completed ? (isRunning
-              ? `<div class="stop-btn timer-control-btn" data-action="stop" title="Stop Timer">⏸</div><div class="complete-btn timer-control-btn" data-action="complete" title="Complete Goal">✓</div>`
-              : `<div class="play-btn timer-control-btn" data-action="start" title="Start Timer">▶</div>`
+              ? `<div class="stop-btn timer-control-btn" data-action="stop" title="Stop Timer"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"/></svg></div>
+                 <div class="complete-btn timer-control-btn" data-action="complete" title="Complete Goal"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022z"/></svg></div>`
+              : `<div class="play-btn timer-control-btn" data-action="start" title="Start Timer"><svg xmlns="http://www.w3.org/2000/svg" class="ml-0.5" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg></div>`
             ) : ''}
-            <button class="delete-goal-btn text-indigo-400 hover:text-red-500 opacity-0 group-hover:opacity-100" title="Delete Goal">
+            <button class="delete-goal-btn text-indigo-400 hover:text-red-500" title="Delete Goal">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
           </div>
-        </div>
-        `;
+        </div>`
       }).join('')
-      : '<p class="text-indigo-400 p-4">No goals for this day.</p>';
+      : '<p class="text-indigo-400 p-4 text-center">No goals for this day. Add one below!</p>';
 
-      memberCard.innerHTML = `
-        <div class="flex justify-between items-start mb-5">
-          <div class="flex items-center gap-3">
-            ${avatarHtml}
-            <h3 class="text-2xl font-extrabold text-indigo-800">${member.name}</h3>
-          </div>
-          <div class="flex items-center gap-3">
-            <button class="carry-forward-btn text-sm bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg">Carry Forward Incomplete</button>
-            <button class="delete-member-btn text-indigo-400 hover:text-red-600 text-2xl font-bold" title="Delete Member">&times;</button>
-          </div>
+    memberCard.innerHTML = `
+      <div class="flex justify-between items-start mb-5">
+        <div class="flex items-center gap-3"> ${avatarHtml} <h3 class="text-2xl font-extrabold text-indigo-800">${member.name}</h3> </div>
+        <div class="flex items-center gap-3">
+          <button class="carry-forward-btn text-sm bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg hover:bg-indigo-200">Carry Forward</button>
+          <button class="delete-member-btn text-indigo-400 hover:text-red-600 text-2xl font-bold">&times;</button>
         </div>
-        <div class="flex items-center gap-3 mb-5">
-          <label class="font-semibold text-indigo-600">Tasks for:</label>
-          <input type="date" class="member-date-picker p-2 border border-indigo-300 rounded-lg" value="${selectedDate}" />
+      </div>
+      <div class="flex items-center gap-3 mb-5">
+        <label class="font-semibold text-indigo-600">Tasks for:</label>
+        <input type="date" class="member-date-picker p-2 border border-indigo-300 rounded-lg" value="${selectedDate}" />
+      </div>
+      <div class="mb-5">
+        <div class="flex justify-between items-center mb-1 text-sm text-indigo-600 font-semibold">
+          <span>Progress</span>
+          <span>${completedTasks} / ${totalTasks} Goals</span>
         </div>
-        <div class="mb-5">
-          <div class="flex justify-between items-center mb-1 text-sm text-indigo-600 font-semibold">
-            <span>Progress</span>
-            <span>${completedTasks} / ${totalTasks}</span>
-          </div>
-          <div class="w-full bg-indigo-200 rounded-full h-3">
-            <div class="bg-indigo-600 h-3 rounded-full transition-all duration-400" style="width:${progressPercent}%;"></div>
-          </div>
-          <div class="text-xs mt-2 text-indigo-500 font-medium">Total time today: ${formatTime(totalTimeSpentToday)}</div>
+        <div class="w-full bg-indigo-200 rounded-full h-3 overflow-hidden">
+          <div class="bg-indigo-600 h-3 rounded-full transition-all duration-500 ease-out" style="width:${progressPercent}%;"></div>
         </div>
-        <div class="goals-list flex-grow overflow-y-auto max-h-80 pr-3">${goalsHtml}</div>
-        <div class="mt-6 pt-5 border-t flex flex-col sm:flex-row gap-3">
-          <input type="text" class="new-goal-input flex-grow p-3 border border-indigo-300 rounded-xl" placeholder="Add a new goal..." />
-          <button class="add-goal-btn bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-800 shadow-md transition">Add Goal</button>
-        </div>
-      `;
-
-      container.appendChild(memberCard);
-
-      goalsForSelectedDate.forEach(goal => {
-        if (goal.isRunning) {
-          startTimerDisplay(member.id, selectedDate, goal.id);
-        }
-      });
+        <div class="text-xs mt-2 text-indigo-500 font-medium">Total time today: ${formatTime(totalTimeSpentToday)}</div>
+      </div>
+      <div class="goals-list flex-grow overflow-y-auto max-h-80 pr-2">${goalsHtml}</div>
+      <div class="mt-6 pt-5 border-t flex flex-col sm:flex-row gap-3">
+        <input type="text" class="new-goal-input flex-grow p-3 border border-indigo-300 rounded-xl focus:ring-0 focus:outline-none" placeholder="Add a new goal..." />
+        <button class="add-goal-btn bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-800 shadow-md">Add Goal</button>
+      </div>`;
+    container.appendChild(memberCard);
   });
 }
 
-// ---- MESSENGER FUNCTIONS ----
 function updateMessengerUserSelect() {
     const select = document.getElementById('messenger-user-select');
     const currentValue = select.value;
     select.innerHTML = '<option value="">-- Select your name --</option>';
     allMembersData.forEach(member => {
         const option = document.createElement('option');
-        option.value = member.id;
-        option.textContent = member.name;
-        select.appendChild(option);
+        option.value = member.id; option.textContent = member.name; select.appendChild(option);
     });
-    if (allMembersData.some(m => m.id === currentValue)) {
-        select.value = currentValue;
-    } else if (currentMessengerId && allMembersData.some(m=>m.id===currentMessengerId)) {
-        select.value = currentMessengerId;
-    } else {
-        currentMessengerId = '';
-        localStorage.removeItem('currentMessengerId');
-    }
+    if (allMembersData.some(m => m.id === currentValue)) { select.value = currentValue; }
+    else if (currentMessengerId && allMembersData.some(m=>m.id===currentMessengerId)) { select.value = currentMessengerId; }
+    else { currentMessengerId = ''; localStorage.removeItem('currentMessengerId'); }
 }
 
 function renderMessages(messages) {
     const container = document.getElementById('messages-container');
     container.innerHTML = '';
-    if (messages.length === 0) {
-        container.innerHTML = '<p class="text-center text-slate-400">No messages yet. Start by pasting a link!</p>';
-        return;
-    }
-    messages.forEach(msg => {
+    if (messages.length === 0) { container.innerHTML = '<p class="text-center text-slate-400">No messages yet. Start by pasting a link!</p>'; return; }
+    messages.forEach((msg, index) => {
         const msgData = msg.data();
         const isSentByCurrentUser = msgData.senderId === currentMessengerId;
         const messageDiv = document.createElement('div');
-        messageDiv.className = `message flex flex-col ${isSentByCurrentUser ? 'sent' : 'received'}`;
-
+        messageDiv.className = `message flex flex-col ${isSentByCurrentUser ? 'sent' : 'received'} fade-in`;
+        messageDiv.style.animationDelay = `${index * 50}ms`;
         const senderName = document.createElement('span');
-        senderName.className = "font-bold text-sm text-indigo-700";
-        senderName.textContent = msgData.senderName;
-
+        senderName.className = "font-bold text-sm text-indigo-700"; senderName.textContent = msgData.senderName;
         const messageText = document.createElement('p');
         messageText.className = "text-slate-800";
-        // highlight links
         const text = msgData.text || '';
         const linkMatch = text.match(/(https?:\/\/\S+)/);
         if (linkMatch) {
           const a = document.createElement('a');
-          a.href = linkMatch[1];
-          a.target = '_blank';
-          a.rel = 'noopener';
-          a.className = 'link-bubble';
-          a.textContent = linkMatch[1];
+          a.href = linkMatch[1]; a.target = '_blank'; a.rel = 'noopener'; a.className = 'link-bubble'; a.textContent = linkMatch[1];
           messageText.appendChild(a);
-        } else {
-          messageText.textContent = text;
-        }
-
+        } else { messageText.textContent = text; }
         const timestamp = document.createElement('span');
-        timestamp.className = "text-xs text-slate-500 mt-1 self-end";
-        timestamp.textContent = msgData.createdAt ? new Date(msgData.createdAt.toDate()).toLocaleString() : '';
-
-        messageDiv.appendChild(senderName);
-        messageDiv.appendChild(messageText);
-        messageDiv.appendChild(timestamp);
-        container.appendChild(messageDiv);
+        timestamp.className = "text-xs text-slate-500 mt-1 self-end"; timestamp.textContent = msgData.createdAt ? new Date(msgData.createdAt.toDate()).toLocaleString() : '';
+        messageDiv.appendChild(senderName); messageDiv.appendChild(messageText); messageDiv.appendChild(timestamp); container.appendChild(messageDiv);
     });
     container.scrollTop = container.scrollHeight;
-}
-// ---- END MESSENGER FUNCTIONS ----
-
-function startTimerDisplay(memberId, date, goalId) {
-  const intervalKey = `${memberId}_${date}_${goalId}`;
-  if (timerIntervals[intervalKey]) clearInterval(timerIntervals[intervalKey]);
-  timerIntervals[intervalKey] = setInterval(() => {
-    updateTimerDisplay(memberId, date, goalId);
-  }, 1000);
-}
-function stopTimerDisplay(memberId, date, goalId) {
-  const intervalKey = `${memberId}_${date}_${goalId}`;
-  if (timerIntervals[intervalKey]) { clearInterval(timerIntervals[intervalKey]); delete timerIntervals[intervalKey]; }
-}
-function updateTimerDisplay(memberId, date, goalId) {
-  const member = allMembersData.find(m => m.id === memberId);
-  if (!member || !member.dailyTasks?.[date]) return;
-  const goal = member.dailyTasks[date].find(g => g.id === goalId);
-  if (!goal || !goal.isRunning) return;
-  const goalElement = document.querySelector(`[data-goal-id="${goalId}"][data-goal-date="${date}"] .timer-display`);
-  if (goalElement) {
-    const totalTime = getTotalTimeSpent(goal);
-    goalElement.textContent = formatTime(totalTime);
-  }
 }
 
 async function handleMemberEvents(e) {
@@ -382,18 +342,8 @@ async function handleMemberEvents(e) {
   const memberId = memberCard.dataset.id;
   const memberDocRef = doc(db, 'members', memberId);
 
-  if (e.target.classList.contains('member-date-picker')) {
-    memberViewStates[memberId] = e.target.value;
-    renderMembers(allMembersData);
-    return;
-  }
-
-  if (e.target.closest('.delete-member-btn')) {
-    if (confirm('Are you sure you want to delete this member?')) {
-      await deleteDoc(memberDocRef);
-    }
-    return;
-  }
+  if (e.target.classList.contains('member-date-picker')) { memberViewStates[memberId] = e.target.value; renderMembers(allMembersData); return; }
+  if (e.target.closest('.delete-member-btn')) { if (confirm('Are you sure you want to delete this member?')) { await deleteDoc(memberDocRef); } return; }
 
   if (e.target.classList.contains('add-goal-btn')) {
     const input = memberCard.querySelector('.new-goal-input');
@@ -448,9 +398,7 @@ async function handleMemberEvents(e) {
           }
           return g;
         });
-      } else {
-        return;
-      }
+      } else { return; }
       tasks[goalDate] = updatedGoals;
       transaction.update(memberDocRef, { dailyTasks: tasks });
     });
@@ -498,14 +446,12 @@ async function handleTimerAction(memberDocRef, date, goalId, action) {
   } catch (error) { console.error("Timer action failed: ", error); }
 }
 
-// Carry forward: move incomplete (not completed) goals from `date` to next day for ALL members
 async function moveIncompleteGoalsForAll(date) {
   const nextDateObj = new Date(date);
   nextDateObj.setDate(nextDateObj.getDate() + 1);
   const nextDate = getLocalDateString(nextDateObj);
   try {
     const membersSnapshot = await getDocs(collection(db, 'members'));
-    const batch = writeBatch ? null : null; // placeholder: we will use transactions per member for safety
     const promises = [];
     membersSnapshot.forEach(memberDoc => {
       const memberRef = doc(db, 'members', memberDoc.id);
@@ -518,24 +464,16 @@ async function moveIncompleteGoalsForAll(date) {
         if (!todaysGoals || todaysGoals.length === 0) return;
         const incomplete = todaysGoals.filter(g => !g.completed);
         if (incomplete.length === 0) return;
-        // Append to nextDate
-        const nextGoals = (tasks[nextDate] || []).concat(incomplete.map(g=>({ ...g })));
-        // Remove incomplete from today's list
-        const remainingToday = todaysGoals.filter(g => g.completed);
-        tasks[nextDate] = nextGoals;
-        tasks[date] = remainingToday;
+        tasks[nextDate] = (tasks[nextDate] || []).concat(incomplete.map(g=>({ ...g })));
+        tasks[date] = todaysGoals.filter(g => g.completed);
         t.update(memberRef, { dailyTasks: tasks });
       }));
     });
     await Promise.all(promises);
     alert('Carry-forward complete. Incomplete goals moved to next day.');
-  } catch (err) {
-    console.error('Carry forward failed:', err);
-    alert('Carry forward failed — check console.');
-  }
+  } catch (err) { console.error('Carry forward failed:', err); alert('Carry forward failed — check console.'); }
 }
 
-// UTIL: generate an avatar (dataURL) from initials using canvas
 function generateAvatarDataUrl(name, color) {
   const initials = (name||'U').split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
   const size = 128; const canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size;
@@ -546,43 +484,27 @@ function generateAvatarDataUrl(name, color) {
   return canvas.toDataURL('image/png');
 }
 
-// Main
 function main() {
-  // Members listener
   onSnapshot(collection(db, 'members'), (snapshot) => {
     document.getElementById('loader').style.display = 'none';
-    allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-      .sort((a, b) => a.name.localeCompare(b.name));
+    allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.name.localeCompare(b.name));
     renderApp();
-  }, (error) => {
-    console.error("Error loading members:", error);
-    document.getElementById('loader').innerHTML = 'Error loading data.';
-  });
+  }, (error) => { console.error("Error loading members:", error); document.getElementById('loader').innerHTML = 'Error loading data.'; });
 
-  // Messages listener
   const messagesQuery = query(collection(db, 'messages'), orderBy('createdAt', 'asc'));
   onSnapshot(messagesQuery, (snapshot) => { renderMessages(snapshot.docs); }, (error) => { console.error("Error loading messages: ", error); });
 
-  // Add member
   document.getElementById('add-member-btn').addEventListener('click', async () => {
     const nameInput = document.getElementById('new-member-name');
-    const fileInput = document.getElementById('new-member-avatar-file');
     const name = nameInput.value.trim();
     if (!name) return alert('Please enter a name');
-    let avatarData = null;
-    if (fileInput.files && fileInput.files[0]) {
-      const file = fileInput.files[0];
-      avatarData = await new Promise((res) => {
-        const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(file);
-      });
-    } else {
-      avatarData = generateAvatarDataUrl(name, pickColorForName(name));
-    }
+    
+    const avatarData = generateAvatarDataUrl(name, pickColorForName(name));
+    
     await addDoc(collection(db, 'members'), { name, dailyTasks: {}, createdAt: serverTimestamp(), avatarData, avatarColor: pickColorForName(name) });
-    nameInput.value = ''; fileInput.value = null;
+    nameInput.value = '';
   });
 
-  // Generate avatar button
   document.getElementById('gen-avatar-btn').addEventListener('click', () => {
     const name = document.getElementById('new-member-name').value.trim() || 'User';
     const data = generateAvatarDataUrl(name, pickColorForName(name));
@@ -590,28 +512,19 @@ function main() {
     win.document.write(`<img src="${data}" alt="avatar" style="width:200px;height:200px;border-radius:20px;display:block;margin:20px;"/>`);
   });
 
-  // Calendar clicks
   document.getElementById('master-calendar-container').addEventListener('click', (e) => {
     if (e.target.closest('#prev-month-btn')) { calendarDate.setMonth(calendarDate.getMonth() - 1); renderApp(); }
     if (e.target.closest('#next-month-btn')) { calendarDate.setMonth(calendarDate.getMonth() + 1); renderApp(); }
     const dayCell = e.target.closest('.calendar-day');
-    if (dayCell) {
-      const date = dayCell.dataset.date;
-      allMembersData.forEach(member => memberViewStates[member.id] = date);
-      renderMembers(allMembersData);
-    }
+    if (dayCell) { const date = dayCell.dataset.date; allMembersData.forEach(member => memberViewStates[member.id] = date); renderMembers(allMembersData); }
   });
 
-  // Member container events
   document.getElementById('members-container').addEventListener('click', handleMemberEvents);
   document.getElementById('members-container').addEventListener('change', handleMemberEvents);
 
-  // Messenger
   document.getElementById('messenger-user-select').addEventListener('change', (e) => {
       currentMessengerId = e.target.value;
       localStorage.setItem('currentMessengerId', currentMessengerId);
-      const messagesQuery = query(collection(db, 'messages'), orderBy('createdAt', 'asc'));
-      onSnapshot(messagesQuery, snapshot => renderMessages(snapshot.docs));
   });
 
   document.getElementById('toggle-link-mode').addEventListener('click', (e) => {
@@ -622,16 +535,12 @@ function main() {
   document.getElementById('send-message-btn').addEventListener('click', async () => {
       const messageInput = document.getElementById('message-input');
       const text = messageInput.value.trim();
-
       if (!currentMessengerId) { alert('Please select your name from the dropdown list to send a message.'); return; }
       if (!text) return;
-
       const isLink = /(https?:\/\/\S+)/.test(text);
       if (messengerOnlyLinks && !isLink) { alert('This messenger is configured for links. Please paste a valid URL like https://example.com'); return; }
-
       const sender = allMembersData.find(m => m.id === currentMessengerId);
       if (!sender) { alert('Could not find your member data. Please try re-selecting your name.'); return; }
-
       try {
           await addDoc(collection(db, 'messages'), { text: text, senderId: currentMessengerId, senderName: sender.name, createdAt: serverTimestamp() });
           messageInput.value = '';
@@ -644,7 +553,6 @@ function main() {
   window.addEventListener('beforeunload', () => { Object.values(timerIntervals).forEach(clearInterval); });
 }
 
-// small helper for deterministic color picking
 function pickColorForName(name) {
   const colors = ['#7c3aed','#06b6d4','#ef4444','#f59e0b','#0ea5a4','#a78bfa'];
   let h = 0; for (let i=0;i<name.length;i++) h = (h<<5) - h + name.charCodeAt(i);
@@ -655,4 +563,4 @@ main();
 </script>
 
 </body>
-</html>
+</html> add a new feature that will show a random quote every one hour which is related to study and coding remove feedback part of task and add a pop up to enter name when first time user visit site and store the name in local storage and that should be use to send message and add task
