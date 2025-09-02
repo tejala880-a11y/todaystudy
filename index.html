@@ -113,7 +113,6 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-// FIX: Import onAuthStateChanged for robust auth handling
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, runTransaction, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -136,7 +135,8 @@ const auth = getAuth(app);
 window.OneSignal = window.OneSignal || [];
 OneSignal.push(function() {
     OneSignal.init({
-        appId: "40a6f56e-fd0a-4d5e-88a2-700d0b22a276",
+        // FIX: Using the new, correct App ID you provided.
+        appId: "3908e089-73c0-40d4-9f2c-733204a82a01",
         safari_web_id: "web.onesignal.auto.123456-7890ab-cdef-1234", 
         allowLocalhostAsSecureOrigin: true,
     });
@@ -501,7 +501,6 @@ function stopTimerDisplay(memberId, goalId) {
 }
 
 // --- Initializer ---
-// FIX: Create separate functions for setting up event handlers and firestore listeners
 function setupEventHandlers() {
   document.getElementById('add-member-btn').addEventListener('click', async () => {
     const input = document.getElementById('new-member-name-input');
@@ -565,22 +564,15 @@ function setupFirestoreListeners() {
   onSnapshot(query(collection(db, 'messages'), orderBy('createdAt', 'asc')), (snapshot) => renderMessages(snapshot.docs));
 }
 
-// FIX: Restructure main function to use onAuthStateChanged for robust initialization
 function main() {
-  // Setup the UI event handlers right away
   setupEventHandlers();
   
-  // Listen for auth state changes before touching Firestore
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      // User is signed in. Now we can safely listen to Firestore.
       console.log("Authenticated with UID:", user.uid);
-      document.getElementById('loader').textContent = "Loading members..."; // Update loader text
+      document.getElementById('loader').textContent = "Loading members..."; 
       setupFirestoreListeners();
     } else {
-      // User is not signed in. Let's sign them in anonymously.
-      // onAuthStateChanged will be called again after this completes,
-      // and the 'if (user)' block will run.
       console.log("User not authenticated. Signing in anonymously...");
       signInAnonymously(auth).catch((error) => {
         console.error("Anonymous sign-in failed:", error);
