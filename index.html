@@ -6,6 +6,11 @@
 <title>Tejal's Study Group - Optimized Edition</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- STEP 3.1: ADD ONESIGNAL WEB SDK -->
+<!-- This script loads the necessary OneSignal code. -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+
 <style>
   body { font-family: 'Inter', sans-serif; }
   header {
@@ -75,7 +80,7 @@
   </header>
 
   <div id="members-container" class="grid grid-cols-1 gap-8 mb-8"></div>
-  <div id="loader" class="text-center py-10 text-slate-500">Loading members...</div>
+  <div id="loader" class="text-center py-10 text-slate-500">Authenticating...</div>
   <div id="empty-state-members" class="hidden text-center py-10 bg-white rounded-2xl shadow-lg">
     <p class="text-indigo-500 font-semibold">No members yet. Be the first to join below!</p>
   </div>
@@ -108,10 +113,11 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+// FIX: Import onAuthStateChanged for robust auth handling
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, runTransaction, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // --- Firebase Configuration ---
-// Using the config that supports the rich data structure (dailyTasks, etc.)
 const firebaseConfig = {
     apiKey: "AIzaSyC8zXcbDNwdm2LMbpzV1KkN3wiTyh_vZ3M",
     authDomain: "o-study-f5081.firebaseapp.com",
@@ -123,6 +129,18 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+
+// --- OneSignal Initialization ---
+window.OneSignal = window.OneSignal || [];
+OneSignal.push(function() {
+    OneSignal.init({
+        appId: "40a6f56e-fd0a-4d5e-88a2-700d0b22a276",
+        safari_web_id: "web.onesignal.auto.123456-7890ab-cdef-1234", 
+        allowLocalhostAsSecureOrigin: true,
+    });
+});
 
 // --- State Management ---
 let allMembersData = [];
@@ -150,6 +168,18 @@ const pickColorForName = (name) => {
     for (let i = 0; i < name.length; i++) hash = (hash << 5) - hash + name.charCodeAt(i);
     return colors[Math.abs(hash) % colors.length];
 };
+
+// --- Push Notification Functions ---
+function identifyUserInOneSignal(yourInternalUserId) {
+    if (!yourInternalUserId) return; 
+    if (window.OneSignal) {
+        window.OneSignal.push(function() {
+            OneSignal.setExternalUserId(yourInternalUserId);
+            console.log("User identified in OneSignal with ID:", yourInternalUserId);
+        });
+    }
+}
+
 
 // --- DOM Rendering ---
 function renderApp() {
@@ -197,7 +227,6 @@ function updateMembersUI(members) {
 
     const memberIds = new Set(members.map(m => m.id));
     
-    // OPTIMIZATION: Remove members from DOM that are no longer in the data
     Array.from(container.children).forEach(child => {
         if (!memberIds.has(child.dataset.id)) {
             child.classList.add('fade-out');
@@ -205,7 +234,6 @@ function updateMembersUI(members) {
         }
     });
 
-    // OPTIMIZATION: Add or update existing member cards
     members.forEach((member, index) => {
         let memberCard = container.querySelector(`[data-id="${member.id}"]`);
         if (!memberCard) {
@@ -249,7 +277,7 @@ function createMemberCard(member) {
         <input type="text" class="new-goal-input flex-grow p-3 border border-indigo-300 rounded-xl" placeholder="Add a new goal..." />
         <button class="add-goal-btn bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-800">Add Goal</button>
       </div>`;
-    updateMemberCard(card, member); // Initial population
+    updateMemberCard(card, member); 
     return card;
 }
 
@@ -280,7 +308,6 @@ function renderGoalsForMember(listContainer, memberId, date, goals) {
 
     const sortedGoals = [...goals].sort((a, b) => a.completed - b.completed);
     
-    // OPTIMIZATION: This function efficiently adds, removes, or updates goal elements without rebuilding the whole list.
     const goalIds = new Set(sortedGoals.map(g => g.id));
     Array.from(listContainer.children).forEach(child => {
         if (child.classList.contains('goal-item') && !goalIds.has(child.dataset.goalId)) child.remove();
@@ -323,14 +350,13 @@ function renderGoalsForMember(listContainer, memberId, date, goals) {
 function renderMessages(messages) {
     const container = document.getElementById('messages-container');
     
-    // OPTIMIZATION: Efficiently render messages without clearing the container
     const messageIds = new Set(messages.map(msg => msg.id));
     Array.from(container.children).forEach(child => {
         if (!messageIds.has(child.dataset.id)) child.remove();
     });
 
     messages.forEach(msg => {
-        if (container.querySelector(`[data-id="${msg.id}"]`)) return; // Already rendered
+        if (container.querySelector(`[data-id="${msg.id}"]`)) return;
 
         const msgData = msg.data();
         const isSent = msgData.senderId === currentMessengerId;
@@ -475,14 +501,8 @@ function stopTimerDisplay(memberId, goalId) {
 }
 
 // --- Initializer ---
-function main() {
-  onSnapshot(collection(db, 'members'), (snapshot) => {
-    allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.name.localeCompare(b.name));
-    renderApp();
-  });
-  
-  onSnapshot(query(collection(db, 'messages'), orderBy('createdAt', 'asc')), (snapshot) => renderMessages(snapshot.docs));
-
+// FIX: Create separate functions for setting up event handlers and firestore listeners
+function setupEventHandlers() {
   document.getElementById('add-member-btn').addEventListener('click', async () => {
     const input = document.getElementById('new-member-name-input');
     const name = input.value.trim();
@@ -506,7 +526,6 @@ function main() {
     }
   });
 
-  // OPTIMIZATION: Use event delegation for all member actions
   const membersContainer = document.getElementById('members-container');
   membersContainer.addEventListener('click', handleMemberEvents);
   membersContainer.addEventListener('change', handleMemberEvents);
@@ -514,6 +533,7 @@ function main() {
   document.getElementById('messenger-user-select').addEventListener('change', (e) => {
       currentMessengerId = e.target.value;
       localStorage.setItem('currentMessengerId', currentMessengerId);
+      identifyUserInOneSignal(currentMessengerId);
   });
 
   document.getElementById('send-message-btn').addEventListener('click', async () => {
@@ -533,8 +553,46 @@ function main() {
   });
 }
 
+function setupFirestoreListeners() {
+  onSnapshot(collection(db, 'members'), (snapshot) => {
+    allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.name.localeCompare(b.name));
+    renderApp();
+    if (currentMessengerId) {
+        identifyUserInOneSignal(currentMessengerId);
+    }
+  });
+  
+  onSnapshot(query(collection(db, 'messages'), orderBy('createdAt', 'asc')), (snapshot) => renderMessages(snapshot.docs));
+}
+
+// FIX: Restructure main function to use onAuthStateChanged for robust initialization
+function main() {
+  // Setup the UI event handlers right away
+  setupEventHandlers();
+  
+  // Listen for auth state changes before touching Firestore
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // User is signed in. Now we can safely listen to Firestore.
+      console.log("Authenticated with UID:", user.uid);
+      document.getElementById('loader').textContent = "Loading members..."; // Update loader text
+      setupFirestoreListeners();
+    } else {
+      // User is not signed in. Let's sign them in anonymously.
+      // onAuthStateChanged will be called again after this completes,
+      // and the 'if (user)' block will run.
+      console.log("User not authenticated. Signing in anonymously...");
+      signInAnonymously(auth).catch((error) => {
+        console.error("Anonymous sign-in failed:", error);
+        document.getElementById('loader').textContent = "Could not connect to the database. Please check your connection and try again.";
+      });
+    }
+  });
+}
+
 main();
 </script>
 
 </body>
 </html>
+
