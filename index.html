@@ -299,7 +299,10 @@ function renderSharedMonthlyView() {
     const myCompletedTasks = monthlyTasks.filter(task => task.completedBy?.[currentMessengerId]).length;
     
     let html = `
-        <h2 class="text-2xl font-semibold mb-5 text-purple-700">Group Monthly Goals (${new Date(monthStr).toLocaleString('default', { month: 'long', timeZone: 'UTC' })})</h2>
+        <div class="flex justify-between items-center mb-5">
+            <h2 class="text-2xl font-semibold text-purple-700">Group Monthly Goals (${new Date(monthStr).toLocaleString('default', { month: 'long', timeZone: 'UTC' })})</h2>
+            <button id="clear-all-monthly-btn" class="bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-red-600 shadow-md">Clear All Tasks</button>
+        </div>
     `;
 
     if (currentMessengerId) { // Show personal progress bar only if a user is selected
@@ -400,48 +403,6 @@ function updateMessengerUserSelect() {
     ).join('');
 }
 
-// --- Data Seeding ---
-async function seedInitialMonthlyTasks() {
-    const monthStr = getYearMonthString(new Date());
-    const seedFlag = `tasksSeeded_${monthStr}`;
-    if (localStorage.getItem(seedFlag) || allMembersData.length === 0) {
-        return;
-    }
-    console.log("Seeding initial monthly tasks for", monthStr);
-    const tasksToAdd = [
-        "Anatomy: Thyroid Gland", "Anatomy: Brachial Plexus", "Anatomy: Muscles of Mastication", "Anatomy: Shoulder Joint", "Anatomy: Blood Supply of Heart", "Anatomy: Mammary Gland", "Anatomy: Right Atrium",
-        "Anatomy: Circle of Willis", "Anatomy: Cavernous Sinus", "Anatomy: Cubital Fossa", "Anatomy: Thoracic Duct", "Anatomy: Clavipectoral Fascia", "Anatomy: Development of Tongue", "Anatomy: Corpus Callosum", "Anatomy: Falx Cerebri", "Anatomy: Microscopic structure of Palatine Tonsil", "Anatomy: Notochord", "Anatomy: Axillary Artery", "Anatomy: Bronchopulmonary Segments", "Anatomy: Deltoid Muscle", "Anatomy: Azygos Vein", "Anatomy: Pectoralis Major", "Anatomy: Ciliary Ganglion", "Anatomy: Inferior Cerebellar Peduncle",
-        "Anatomy: Sternal Angle", "Anatomy: Nerve Supply of Tongue / Innervation of Tongue", "Anatomy: Median Nerve in Carpal Tunnel", "Anatomy: Cephalic Vein", "Anatomy: Palmar Aponeurosis", "Anatomy: External Jugular Vein", "Anatomy: Dermatome", "Anatomy: First Rib", "Anatomy: Coracoid Process", "Anatomy: Filum Terminale",
-        "Anatomy: Ischiorectal Fossa", "Anatomy: Urinary Bladder", "Anatomy: Knee Joint", "Anatomy: Hip Joint", "Anatomy: Pancreas", "Anatomy: Femoral Triangle", "Anatomy: Uterus", "Anatomy: Sciatic Nerve",
-        "Anatomy: Femoral Sheath", "Anatomy: Epiploic Foramen", "Anatomy: Microscopic structure of Duodenum", "Anatomy: Development of Spleen", "Anatomy: Microscopic structure of Pancreas", "Anatomy: Supports of Uterus", "Anatomy: Dorsalis Pedis Artery", "Anatomy: Development of Pancreas", "Anatomy: Portal Vein", "Anatomy: Adductor Canal", "Anatomy: Portocaval Anastomosis", "Anatomy: Caecum", "Anatomy: Microscopic Structure of Ovary", "Anatomy: Prostate", "Anatomy: Pelvic Diaphragm", "Anatomy: Blood Supply of Stomach",
-        "Anatomy: Barr Body", "Anatomy: Positions of Appendix", "Anatomy: Derivatives of Midgut", "Anatomy: Derivatives of Mesonephric Duct", "Anatomy: Development of Uterus", "Anatomy: Nerve Supply of Urinary Bladder", "Anatomy: Ligaments of Spleen",
-        "Physiology: Formation of Urine / Concentrated Urine", "Physiology: Regulation of Cardiac Output", "Physiology: Coagulation Cascade / Mechanism of Blood Coagulation", "Physiology: Plasma Proteins", "Physiology: Hypoxia", "Physiology: ECG", "Physiology: Regulation of Blood Pressure", "Physiology: Cardiac Cycle",
-        "Physiology: Rennin-Angiotensin Mechanism", "Physiology: Complications of Mismatched Blood Transfusion", "Physiology: Deglutition Reflex / Second Stage of Deglutition", "Physiology: Oxygen-Dissociation Curve", "Physiology: Functions of Stomach", "Physiology: Active Transport", "Physiology: Chloride Shift", "Physiology: Glomerular Filtration Rate (GFR)", "Physiology: P-R Interval", "Physiology: Baroreceptors / Sino-Aortic Reflex", "Physiology: Functions of Plasma Proteins", "Physiology: Surfactant / Pulmonary Surfactant",
-        "Physiology: Triple Response", "Physiology: Periodic Breathing / Cheyne-Stokes Respiration", "Physiology: Vagal Tone", "Physiology: Alkaline Tide", "Physiology: Juxtaglomerular Apparatus", "Physiology: Facilitated Diffusion", "Physiology: Cyanosis", "Physiology: Heart Sounds",
-        "Physiology: Thyroid Hormones", "Physiology: Regulation of Menstrual Cycle", "Physiology: Muscle Spindle and Muscle Tone", "Physiology: Basal Ganglia", "Physiology: Neuromuscular Junction", "Physiology: Pain Pathway", "Physiology: Growth Hormone", "Physiology: Calcium Homeostasis / Hormones Regulating Calcium Level",
-        "Physiology: UMN and LMN Lesion", "Physiology: Refractive Errors of the Eye", "Physiology: Functions of Middle Ear", "Physiology: Referred Pain", "Physiology: Stretch Reflex", "Physiology: Spermatogenesis", "Physiology: Visual Pathway", "Physiology: Cushing's Syndrome", "Physiology: Endometrial changes during Menstrual Cycle", "Physiology: Actions of Insulin", "Physiology: Functions of Hypothalamus", "Physiology: Functions of Cerebellum",
-        "Physiology: Cretinism / Myxoedema", "Physiology: Saltatory Conduction", "Physiology: Inhibin", "Physiology: Oxytocin", "Physiology: Taste Buds / Taste Pathway", "Physiology: Acromegaly", "Physiology: Functions of ADH", "Physiology: Aphasia", "Physiology: Babinski's Sign", "Physiology: Renshaw Cell Inhibition",
-        "Biochemistry: TCA Cycle / Citric Acid Cycle", "Biochemistry: Metabolism of Phenylalanine and Tyrosine",
-        "Biochemistry: Fatty Liver and Lipotropic Factors", "Biochemistry: Urea Formation / Urea Cycle", "Biochemistry: Glycogenolysis", "Biochemistry: Competitive Inhibition", "Biochemistry: Antioxidants", "Biochemistry: Metabolic changes in Diabetes Mellitus", "Biochemistry: Glycogenesis", "Biochemistry: Cell Membrane", "Biochemistry: Compounds derived from Cholesterol",
-        "Biochemistry: Oncogenes", "Biochemistry: Uncouplers of Oxidative Phosphorylation", "Biochemistry: Significance of HMP Pathway", "Biochemistry: Tumor markers", "Biochemistry: Essential Amino Acids", "Biochemistry: Endoplasmic Reticulum",
-        "Biochemistry: Regulation of blood Calcium level", "Biochemistry: Biosynthesis of Protein / Translation", "Biochemistry: Recombinant DNA technology", "Biochemistry: Catabolism of Purine Nucleotides",
-        "Biochemistry: Renal mechanisms in Acid Base Balance", "Biochemistry: Genetic Code", "Biochemistry: Catabolism of Purines", "Biochemistry: Formation of Bilirubin", "Biochemistry: Metabolic Acidosis", "Biochemistry: BMR (Basal Metabolic Rate)", "Biochemistry: Polymerase Chain Reaction (PCR)", "Biochemistry: Porphyrias",
-        "Biochemistry: Creatinine Clearance Test", "Biochemistry: Dietary Fiber", "Biochemistry: Gout"
-    ];
-    const completedBy = Object.fromEntries(allMembersData.map(m => [m.id, false]));
-    const newTasks = tasksToAdd.map(text => ({ id: crypto.randomUUID(), text, completedBy }));
-    const batch = writeBatch(db);
-    allMembersData.forEach(member => {
-        const ref = doc(db, "members", member.id);
-        batch.update(ref, { [`monthlyTasks.${monthStr}`]: arrayUnion(...newTasks) });
-    });
-    try {
-        await batch.commit();
-        localStorage.setItem(seedFlag, 'true');
-        console.log("Successfully seeded tasks.");
-    } catch (error) { console.error("Failed to seed tasks:", error); }
-}
-
 // --- Event Handlers & Logic ---
 async function handleMemberEvents(e) {
   const memberCard = e.target.closest('[data-id]');
@@ -483,9 +444,11 @@ async function handleMemberEvents(e) {
       if (incompleteTasks.length === 0) {
           alert('No incomplete tasks to carry over!'); return;
       }
-      const nextDay = new Date(dateStr);
-      nextDay.setDate(nextDay.getDate() + 2); // Correct for timezone offset in date creation
-      const nextDateStr = getLocalDateString(nextDay);
+      
+      const currentDate = new Date(dateStr);
+      currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+      const nextDateStr = currentDate.toISOString().split('T')[0];
+
       const tasksToCarry = incompleteTasks.map(t => ({...t, id: crypto.randomUUID(), completed: false, totalTime: 0, isRunning: false, startTime: null}));
       
       await updateDoc(memberDocRef, { [`dailyTasks.${nextDateStr}`]: arrayUnion(...tasksToCarry) });
@@ -524,8 +487,33 @@ async function handleMemberEvents(e) {
   } catch (error) { console.error("Goal update failed: ", error); }
 }
 
+async function updateAllMembersMonthlyTasks(monthStr, updateFn) {
+    if (allMembersData.length === 0) return;
+
+    // Use the first member's data as the source of truth for the current task list
+    const firstMember = allMembersData[0];
+    const currentTasks = firstMember.monthlyTasks?.[monthStr] || [];
+    const updatedTasks = updateFn(currentTasks);
+
+    const batch = writeBatch(db);
+    allMembersData.forEach(member => {
+        const ref = doc(db, "members", member.id);
+        // Overwrite the entire month's task array for each member
+        batch.update(ref, { [`monthlyTasks.${monthStr}`]: updatedTasks });
+    });
+    await batch.commit();
+}
+
 async function handleSharedMonthlyEvents(e) {
   const monthStr = getYearMonthString(calendarDate);
+
+  // Clear All Monthly Goals
+  if (e.target.matches('#clear-all-monthly-btn')) {
+      if (confirm("Are you sure you want to clear ALL monthly tasks for everyone for this month? This cannot be undone.")) {
+          await updateAllMembersMonthlyTasks(monthStr, () => []); // Pass a function that returns an empty array
+      }
+      return;
+  }
 
   // Add Monthly Goal
   if (e.target.matches('#add-monthly-goal-btn')) {
@@ -536,12 +524,7 @@ async function handleSharedMonthlyEvents(e) {
     const completedBy = Object.fromEntries(allMembersData.map(m => [m.id, false]));
     const newMonthlyTask = { id: crypto.randomUUID(), text, completedBy };
 
-    const batch = writeBatch(db);
-    allMembersData.forEach(member => {
-        const ref = doc(db, "members", member.id);
-        batch.update(ref, { [`monthlyTasks.${monthStr}`]: arrayUnion(newMonthlyTask) });
-    });
-    await batch.commit();
+    await updateAllMembersMonthlyTasks(monthStr, (tasks) => [...tasks, newMonthlyTask]);
     input.value = '';
     return;
   }
@@ -555,24 +538,15 @@ async function handleSharedMonthlyEvents(e) {
       const targetMemberId = e.target.dataset.memberId;
       const isChecked = e.target.checked;
       
-      const firstMember = allMembersData[0];
-      if (!firstMember) return;
-      const currentMonthTasks = firstMember.monthlyTasks?.[monthStr] || [];
-
-      const updatedMonthTasks = currentMonthTasks.map(task => {
-          if (task.id === taskId) {
-              const updatedCompletedBy = { ...task.completedBy, [targetMemberId]: isChecked };
-              return { ...task, completedBy: updatedCompletedBy };
-          }
-          return task;
-      });
-
-      const batch = writeBatch(db);
-      allMembersData.forEach(member => {
-          const ref = doc(db, "members", member.id);
-          batch.update(ref, { [`monthlyTasks.${monthStr}`]: updatedMonthTasks });
-      });
-      await batch.commit();
+      await updateAllMembersMonthlyTasks(monthStr, (tasks) => 
+        tasks.map(task => {
+            if (task.id === taskId) {
+                const updatedCompletedBy = { ...task.completedBy, [targetMemberId]: isChecked };
+                return { ...task, completedBy: updatedCompletedBy };
+            }
+            return task;
+        })
+      );
       return;
   }
 
@@ -599,17 +573,7 @@ async function handleSharedMonthlyEvents(e) {
   if (e.target.closest('.delete-goal-btn')) {
       if (!confirm("Are you sure you want to delete this group goal for everyone?")) return;
       
-      const firstMember = allMembersData[0];
-      if (!firstMember) return;
-      const currentMonthTasks = firstMember.monthlyTasks?.[monthStr] || [];
-      const updatedMonthTasks = currentMonthTasks.filter(t => t.id !== taskId);
-
-      const batch = writeBatch(db);
-      allMembersData.forEach(member => {
-          const ref = doc(db, "members", member.id);
-          batch.update(ref, { [`monthlyTasks.${monthStr}`]: updatedMonthTasks });
-      });
-      await batch.commit();
+      await updateAllMembersMonthlyTasks(monthStr, (tasks) => tasks.filter(t => t.id !== taskId));
       return;
   }
 }
@@ -621,6 +585,7 @@ async function handleTimerAction(memberDocRef, date, goalId, action) {
     const tasks = memberDoc.data().dailyTasks || {};
     let goals = tasks[date] || [];
     const now = Date.now();
+    // Stop any currently running timer for this member on this day before starting a new one
     goals = goals.map(g => ({ ...g, isRunning: false, totalTime: g.isRunning ? getTotalTimeSpent(g) : g.totalTime }));
     if (action === 'start') {
         goals = goals.map(g => g.id === goalId ? { ...g, isRunning: true, startTime: now } : g);
@@ -633,7 +598,7 @@ async function handleTimerAction(memberDocRef, date, goalId, action) {
 // --- Timer Display Management ---
 function startTimerDisplay(memberId, date, goalId) {
     const intervalKey = `${memberId}-${goalId}`;
-    if (timerIntervals[intervalKey]) return;
+    if (timerIntervals[intervalKey]) return; // Avoid multiple intervals for the same timer
     timerIntervals[intervalKey] = setInterval(() => {
         const member = allMembersData.find(m => m.id === memberId);
         if (!member) { stopTimerDisplay(memberId, goalId); return; }
@@ -667,19 +632,20 @@ function setupEventHandlers() {
   });
 
   document.getElementById('master-calendar-container').addEventListener('click', (e) => {
+    let needsFullRender = true;
     if (e.target.closest('#prev-month-btn')) calendarDate.setMonth(calendarDate.getMonth() - 1);
-    if (e.target.closest('#next-month-btn')) calendarDate.setMonth(calendarDate.getMonth() + 1);
-    
-    const dayCell = e.target.closest('.calendar-day');
-    if (dayCell) {
+    else if (e.target.closest('#next-month-btn')) calendarDate.setMonth(calendarDate.getMonth() + 1);
+    else if (e.target.closest('.calendar-day')) {
+      const newDate = e.target.closest('.calendar-day').dataset.date;
       allMembersData.forEach(member => {
           if (!memberViewStates[member.id]) memberViewStates[member.id] = {};
-          memberViewStates[member.id].date = dayCell.dataset.date;
+          memberViewStates[member.id].date = newDate;
       });
-      updateMembersUI(allMembersData);
-    } else {
-        renderApp();
+      updateMembersUI(allMembersData); // Just update member cards, not the whole app
+      needsFullRender = false;
     }
+    
+    if (needsFullRender) renderApp();
   });
 
   const membersContainer = document.getElementById('members-container');
@@ -700,9 +666,15 @@ function setupEventHandlers() {
   const sendMessage = async () => {
     const input = document.getElementById('message-input');
     const text = input.value.trim();
-    if (!currentMessengerId || !text) return;
+    if (!currentMessengerId) {
+        alert("Please select your name from the 'I am:' dropdown to send a message.");
+        return;
+    }
+    if (!text) return;
+
     const sender = allMembersData.find(m => m.id === currentMessengerId);
     if (!sender) return;
+    
     await addDoc(collection(db, 'messages'), {
         text, senderId: currentMessengerId, senderName: sender.name, createdAt: serverTimestamp()
     });
@@ -718,7 +690,6 @@ function setupEventHandlers() {
 function setupFirestoreListeners() {
   onSnapshot(query(collection(db, 'members'), orderBy('name', 'asc')), (snapshot) => {
     allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    seedInitialMonthlyTasks();
     renderApp();
     if (currentMessengerId) {
         identifyUserInOneSignal(currentMessengerId);
