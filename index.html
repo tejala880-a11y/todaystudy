@@ -128,6 +128,28 @@ OneSignal.push(function() {
     });
 });
 
+// --- Constants ---
+const INITIAL_MONTHLY_TASKS = [
+    // Anatomy - Long Essays
+    "Anatomy (LE): Blood Supply of Heart", "Anatomy (LE): Brachial Plexus", "Anatomy (LE): Femoral Triangle", "Anatomy (LE): Hip Joint", "Anatomy (LE): Ischiorectal Fossa", "Anatomy (LE): Knee Joint", "Anatomy (LE): Mammary Gland", "Anatomy (LE): Muscles of Mastication", "Anatomy (LE): Pancreas", "Anatomy (LE): Right Atrium", "Anatomy (LE): Sciatic Nerve", "Anatomy (LE): Shoulder Joint", "Anatomy (LE): Thyroid Gland", "Anatomy (LE): Urinary Bladder", "Anatomy (LE): Uterus",
+    // Anatomy - Short Essays
+    "Anatomy (SE): Adductor Canal", "Anatomy (SE): Axillary Artery", "Anatomy (SE): Azygos Vein", "Anatomy (SE): Blood Supply of Stomach", "Anatomy (SE): Bronchopulmonary Segments", "Anatomy (SE): Caecum", "Anatomy (SE): Cavernous Sinus", "Anatomy (SE): Ciliary Ganglion", "Anatomy (SE): Circle of Willis", "Anatomy (SE): Clavipectoral Fascia", "Anatomy (SE): Corpus Callosum", "Anatomy (SE): Cubital Fossa", "Anatomy (SE): Deltoid Muscle", "Anatomy (SE): Development of Pancreas", "Anatomy (SE): Development of Spleen", "Anatomy (SE): Development of Tongue", "Anatomy (SE): Dorsalis Pedis Artery", "Anatomy (SE): Epiploic Foramen", "Anatomy (SE): Falx Cerebri", "Anatomy (SE): Femoral Sheath", "Anatomy (SE): Inferior Cerebellar Peduncle", "Anatomy (SE): Ischiorectal Fossa", "Anatomy (SE): Microscopic structure of Duodenum", "Anatomy (SE): Microscopic structure of Palatine Tonsil", "Anatomy (SE): Microscopic structure of Pancreas", "Anatomy (SE): Microscopic Structure of Ovary", "Anatomy (SE): Notochord", "Anatomy (SE): Pectoralis Major", "Anatomy (SE): Pelvic Diaphragm", "Anatomy (SE): Portal Vein", "Anatomy (SE): Portocaval Anastomosis", "Anatomy (SE): Prostate", "Anatomy (SE): Supports of Uterus", "Anatomy (SE): Thoracic Duct",
+    // Anatomy - Short Answers
+    "Anatomy (SA): Barr Body", "Anatomy (SA): Cephalic Vein", "Anatomy (SA): Coracoid Process", "Anatomy (SA): Derivatives of Mesonephric Duct", "Anatomy (SA): Derivatives of Midgut", "Anatomy (SA): Dermatome", "Anatomy (SA): Development of Tongue", "Anatomy (SA): Development of Uterus", "Anatomy (SA): Dorsalis Pedis Artery", "Anatomy (SA): Epiploic Foramen", "Anatomy (SA): External Jugular Vein", "Anatomy (SA): Filum Terminale", "Anatomy (SA): First Rib", "Anatomy (SA): Innervation of Tongue", "Anatomy (SA): Ligaments of Spleen", "Anatomy (SA): Median Nerve in Carpal Tunnel", "Anatomy (SA): Nerve Supply of Urinary Bladder", "Anatomy (SA): Palmar Aponeurosis", "Anatomy (SA): Positions of Appendix", "Anatomy (SA): Sternal Angle",
+    // Physiology - Long Essays
+    "Physiology (LE): Formation of Urine", "Physiology (LE): Regulation of Cardiac Output", "Physiology (LE): Mechanism of Blood Coagulation", "Physiology (LE): Plasma Proteins", "Physiology (LE): Hypoxia", "Physiology (LE): ECG", "Physiology (LE): Regulation of Blood Pressure", "Physiology (LE): Cardiac Cycle", "Physiology (LE): Thyroid Hormones", "Physiology (LE): Regulation of Menstrual Cycle", "Physiology (LE): Muscle Spindle and Muscle Tone", "Physiology (LE): Basal Ganglia", "Physiology (LE): Neuromuscular Junction", "Physiology (LE): Pain Pathway", "Physiology (LE): Growth Hormone", "Physiology (LE): Calcium Homeostasis",
+    // Physiology - Short Essays
+    "Physiology (SE): Rennin-Angiotensin Mechanism", "Physiology (SE): Complications of Mismatched Blood Transfusion", "Physiology (SE): Deglutition Reflex", "Physiology (SE): Oxygen-Dissociation Curve", "Physiology (SE): Functions of Stomach", "Physiology (SE): Active Transport", "Physiology (SE): Chloride Shift", "Physiology (SE): Glomerular Filtration Rate (GFR)", "Physiology (SE): P-R Interval", "Physiology (SE): Sino-Aortic Reflex", "Physiology (SE): Functions of Plasma Proteins", "Physiology (SE): Pulmonary Surfactant", "Physiology (SE): UMN and LMN Lesion", "Physiology (SE): Refractive Errors of the Eye", "Physiology (SE): Functions of Middle Ear", "Physiology (SE): Referred Pain", "Physiology (SE): Stretch Reflex", "Physiology (SE): Spermatogenesis", "Physiology (SE): Visual Pathway", "Physiology (SE): Cushing's Syndrome", "Physiology (SE): Endometrial changes during Menstrual Cycle", "Physiology (SE): Actions of Insulin", "Physiology (SE): Functions of Hypothalamus", "Physiology (SE): Functions of Cerebellum",
+    // Physiology - Short Answers
+    "Physiology (SA): Triple Response", "Physiology (SA): Cheyne-Stokes Respiration", "Physiology (SA): Vagal Tone", "Physiology (SA): Alkaline Tide", "Physiology (SA): Juxtaglomerular Apparatus", "Physiology (SA): Facilitated Diffusion", "Physiology (SA): Cyanosis", "Physiology (SA): Heart Sounds", "Physiology (SA): Cretinism / Myxoedema", "Physiology (SA): Saltatory Conduction", "Physiology (SA): Inhibin", "Physiology (SA): Oxytocin", "Physiology (SA): Taste Pathway", "Physiology (SA): Acromegaly", "Physiology (SA): Functions of ADH", "Physiology (SA): Aphasia", "Physiology (SA): Babinski's Sign", "Physiology (SA): Renshaw Cell Inhibition",
+    // Biochemistry - Long Essays
+    "Biochemistry (LE): Citric Acid Cycle (TCA Cycle)", "Biochemistry (LE): Metabolism of Phenylalanine and Tyrosine", "Biochemistry (LE): Regulation of Blood Calcium Level", "Biochemistry (LE): Protein Biosynthesis (Translation)", "Biochemistry (LE): Recombinant DNA Technology", "Biochemistry (LE): Catabolism of Purine Nucleotides",
+    // Biochemistry - Short Essays
+    "Biochemistry (SE): Fatty Liver and Lipotropic Factors", "Biochemistry (SE): Urea Cycle", "Biochemistry (SE): Glycogenolysis", "Biochemistry (SE): Competitive Inhibition", "Biochemistry (SE): Antioxidants", "Biochemistry (SE): Metabolic changes in Diabetes Mellitus", "Biochemistry (SE): Glycogenesis", "Biochemistry (SE): Cell Membrane", "Biochemistry (SE): Compounds derived from Cholesterol", "Biochemistry (SE): Renal Mechanisms in Acid Base Balance", "Biochemistry (SE): Genetic Code", "Biochemistry (SE): Catabolism of Purines", "Biochemistry (SE): Formation of Bilirubin", "Biochemistry (SE): Metabolic Acidosis", "Biochemistry (SE): Basal Metabolic Rate (BMR)", "Biochemistry (SE): Polymerase Chain Reaction (PCR)", "Biochemistry (SE): Porphyrias",
+    // Biochemistry - Short Answers
+    "Biochemistry (SA): Oncogenes", "Biochemistry (SA): Uncouplers of Oxidative Phosphorylation", "Biochemistry (SA): Significance of HMP Pathway", "Biochemistry (SA): Tumor Markers", "Biochemistry (SA): Essential Amino Acids", "Biochemistry (SA): Endoplasmic Reticulum", "Biochemistry (SA): Creatinine Clearance Test", "Biochemistry (SA): Dietary Fiber", "Biochemistry (SA): Gout"
+];
+
 // --- State Management ---
 let allMembersData = [];
 const memberViewStates = {};
@@ -166,19 +188,20 @@ function identifyUserInOneSignal(yourInternalUserId) {
 
 // --- DOM Rendering ---
 function renderApp() {
+    renderMasterCalendar(calendarDate.getFullYear(), calendarDate.getMonth());
+    updateMembersUI(allMembersData);
+    renderSharedMonthlyView();
+    updateMessengerUserSelect();
+}
+
+function renderMasterCalendar(year, month) {
     const tasksByDate = {};
     allMembersData.forEach(member => {
         Object.entries(member.dailyTasks || {}).forEach(([date, tasks]) => {
             tasksByDate[date] = (tasksByDate[date] || 0) + tasks.length;
         });
     });
-    renderMasterCalendar(calendarDate.getFullYear(), calendarDate.getMonth(), tasksByDate);
-    updateMembersUI(allMembersData);
-    renderSharedMonthlyView();
-    updateMessengerUserSelect();
-}
 
-function renderMasterCalendar(year, month, tasksByDate) {
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -288,31 +311,38 @@ function renderDailyView(card, member, date) {
 function renderSharedMonthlyView() {
     const container = document.getElementById('monthly-goals-container');
     if (allMembersData.length === 0) {
-        container.innerHTML = ''; // Hide if no members
+        container.innerHTML = '';
         return;
     }
 
     const monthStr = getYearMonthString(calendarDate);
-    const firstMember = allMembersData[0]; // Tasks are the same for everyone, so we use one as a reference
+    const firstMember = allMembersData[0];
     const monthlyTasks = firstMember.monthlyTasks?.[monthStr] || [];
 
-    const myCompletedTasks = monthlyTasks.filter(task => task.completedBy?.[currentMessengerId]).length;
-    
     let html = `
         <div class="flex justify-between items-center mb-5">
             <h2 class="text-2xl font-semibold text-purple-700">Group Monthly Goals (${new Date(monthStr).toLocaleString('default', { month: 'long', timeZone: 'UTC' })})</h2>
-            <button id="clear-all-monthly-btn" class="bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-red-600 shadow-md">Clear All Tasks</button>
         </div>
+        <div class="space-y-4 mb-6">
     `;
 
-    if (currentMessengerId) { // Show personal progress bar only if a user is selected
+    allMembersData.forEach(member => {
+        const completedCount = monthlyTasks.filter(task => task.completedBy?.[member.id]).length;
+        const progress = monthlyTasks.length > 0 ? (completedCount / monthlyTasks.length) * 100 : 0;
         html += `
-          <div class="mb-5">
-            <div class="flex justify-between items-center mb-1 text-sm text-purple-600 font-semibold"><span>Your Progress</span><span class="monthly-progress-count">${myCompletedTasks} / ${monthlyTasks.length} Goals</span></div>
-            <div class="w-full bg-purple-200 rounded-full h-3"><div class="monthly-progress-bar bg-purple-600 h-3 rounded-full" style="width:${monthlyTasks.length > 0 ? (myCompletedTasks / monthlyTasks.length) * 100 : 0}%;"></div></div>
-          </div>
+            <div>
+                <div class="flex justify-between items-center mb-1 text-sm text-purple-600 font-semibold">
+                    <span>${member.name}</span>
+                    <span>${completedCount} / ${monthlyTasks.length}</span>
+                </div>
+                <div class="w-full bg-purple-200 rounded-full h-2.5">
+                    <div class="bg-purple-600 h-2.5 rounded-full" style="width: ${progress}%;"></div>
+                </div>
+            </div>
         `;
-    }
+    });
+
+    html += `</div>`;
 
     if (monthlyTasks.length === 0) {
         html += '<p class="text-purple-400 p-4 text-center">No monthly goals set for this month.</p>';
@@ -329,12 +359,12 @@ function renderSharedMonthlyView() {
                         <button class="delete-goal-btn text-purple-400 hover:text-red-500" title="Delete Monthly Goal">X</button>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2 mt-3 text-sm">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-3 mt-3 text-sm">
                     ${allMembersData.map(m => `
-                        <label class="flex items-center gap-2">
-                            <input type="checkbox" class="monthly-goal-checkbox h-4 w-4 rounded text-purple-600" 
-                                   data-member-id="${m.id}" ${task.completedBy?.[m.id] ? 'checked' : ''}>
+                        <label class="relative inline-flex items-center cursor-pointer justify-between">
                             <span class="text-slate-700">${m.name.split(' ')[0]}</span>
+                            <input type="checkbox" class="sr-only peer monthly-goal-checkbox" data-member-id="${m.id}" ${task.completedBy?.[m.id] ? 'checked' : ''}>
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-purple-300 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:end-[22px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                         </label>
                     `).join('')}
                 </div>
@@ -401,6 +431,37 @@ function updateMessengerUserSelect() {
     select.innerHTML = '<option value="">-- Select your name --</option>' + allMembersData.map(member =>
         `<option value="${member.id}" ${member.id === currentMessengerId ? 'selected' : ''}>${member.name}</option>`
     ).join('');
+}
+
+// --- Data Seeding ---
+async function seedInitialMonthlyTasks() {
+    const monthStr = getYearMonthString(new Date());
+    const seedFlag = `tasksSeeded_${monthStr}`;
+    if (localStorage.getItem(seedFlag) || allMembersData.length === 0) {
+        return;
+    }
+    
+    // Check if tasks already exist for this month to prevent overwriting
+    const firstMemberDoc = await getDoc(doc(db, "members", allMembersData[0].id));
+    if (firstMemberDoc.exists() && firstMemberDoc.data().monthlyTasks?.[monthStr]?.length > 0) {
+        localStorage.setItem(seedFlag, 'true'); // Mark as "seeded" to prevent re-checking
+        return;
+    }
+
+    console.log("Seeding initial monthly tasks for", monthStr);
+    const completedBy = Object.fromEntries(allMembersData.map(m => [m.id, false]));
+    const newTasks = INITIAL_MONTHLY_TASKS.map(text => ({ id: crypto.randomUUID(), text, completedBy }));
+
+    try {
+        const batch = writeBatch(db);
+        allMembersData.forEach(member => {
+            const ref = doc(db, "members", member.id);
+            batch.update(ref, { [`monthlyTasks.${monthStr}`]: newTasks });
+        });
+        await batch.commit();
+        localStorage.setItem(seedFlag, 'true');
+        console.log("Successfully seeded tasks.");
+    } catch (error) { console.error("Failed to seed tasks:", error); }
 }
 
 // --- Event Handlers & Logic ---
@@ -490,7 +551,6 @@ async function handleMemberEvents(e) {
 async function updateAllMembersMonthlyTasks(monthStr, updateFn) {
     if (allMembersData.length === 0) return;
 
-    // Use the first member's data as the source of truth for the current task list
     const firstMember = allMembersData[0];
     const currentTasks = firstMember.monthlyTasks?.[monthStr] || [];
     const updatedTasks = updateFn(currentTasks);
@@ -498,7 +558,6 @@ async function updateAllMembersMonthlyTasks(monthStr, updateFn) {
     const batch = writeBatch(db);
     allMembersData.forEach(member => {
         const ref = doc(db, "members", member.id);
-        // Overwrite the entire month's task array for each member
         batch.update(ref, { [`monthlyTasks.${monthStr}`]: updatedTasks });
     });
     await batch.commit();
@@ -506,14 +565,6 @@ async function updateAllMembersMonthlyTasks(monthStr, updateFn) {
 
 async function handleSharedMonthlyEvents(e) {
   const monthStr = getYearMonthString(calendarDate);
-
-  // Clear All Monthly Goals
-  if (e.target.matches('#clear-all-monthly-btn')) {
-      if (confirm("Are you sure you want to clear ALL monthly tasks for everyone for this month? This cannot be undone.")) {
-          await updateAllMembersMonthlyTasks(monthStr, () => []); // Pass a function that returns an empty array
-      }
-      return;
-  }
 
   // Add Monthly Goal
   if (e.target.matches('#add-monthly-goal-btn')) {
@@ -585,7 +636,6 @@ async function handleTimerAction(memberDocRef, date, goalId, action) {
     const tasks = memberDoc.data().dailyTasks || {};
     let goals = tasks[date] || [];
     const now = Date.now();
-    // Stop any currently running timer for this member on this day before starting a new one
     goals = goals.map(g => ({ ...g, isRunning: false, totalTime: g.isRunning ? getTotalTimeSpent(g) : g.totalTime }));
     if (action === 'start') {
         goals = goals.map(g => g.id === goalId ? { ...g, isRunning: true, startTime: now } : g);
@@ -598,7 +648,7 @@ async function handleTimerAction(memberDocRef, date, goalId, action) {
 // --- Timer Display Management ---
 function startTimerDisplay(memberId, date, goalId) {
     const intervalKey = `${memberId}-${goalId}`;
-    if (timerIntervals[intervalKey]) return; // Avoid multiple intervals for the same timer
+    if (timerIntervals[intervalKey]) return;
     timerIntervals[intervalKey] = setInterval(() => {
         const member = allMembersData.find(m => m.id === memberId);
         if (!member) { stopTimerDisplay(memberId, goalId); return; }
@@ -632,17 +682,20 @@ function setupEventHandlers() {
   });
 
   document.getElementById('master-calendar-container').addEventListener('click', (e) => {
-    let needsFullRender = true;
-    if (e.target.closest('#prev-month-btn')) calendarDate.setMonth(calendarDate.getMonth() - 1);
-    else if (e.target.closest('#next-month-btn')) calendarDate.setMonth(calendarDate.getMonth() + 1);
-    else if (e.target.closest('.calendar-day')) {
+    let needsFullRender = false;
+    if (e.target.closest('#prev-month-btn')) {
+        calendarDate.setMonth(calendarDate.getMonth() - 1);
+        needsFullRender = true;
+    } else if (e.target.closest('#next-month-btn')) {
+        calendarDate.setMonth(calendarDate.getMonth() + 1);
+        needsFullRender = true;
+    } else if (e.target.closest('.calendar-day')) {
       const newDate = e.target.closest('.calendar-day').dataset.date;
       allMembersData.forEach(member => {
           if (!memberViewStates[member.id]) memberViewStates[member.id] = {};
           memberViewStates[member.id].date = newDate;
       });
-      updateMembersUI(allMembersData); // Just update member cards, not the whole app
-      needsFullRender = false;
+      updateMembersUI(allMembersData);
     }
     
     if (needsFullRender) renderApp();
@@ -659,7 +712,7 @@ function setupEventHandlers() {
   document.getElementById('messenger-user-select').addEventListener('change', (e) => {
       currentMessengerId = e.target.value;
       localStorage.setItem('currentMessengerId', currentMessengerId);
-      renderSharedMonthlyView(); // Re-render to show personal progress
+      renderSharedMonthlyView();
       identifyUserInOneSignal(currentMessengerId);
   });
 
@@ -688,9 +741,29 @@ function setupEventHandlers() {
 }
 
 function setupFirestoreListeners() {
-  onSnapshot(query(collection(db, 'members'), orderBy('name', 'asc')), (snapshot) => {
-    allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const membersQuery = query(collection(db, 'members'), orderBy('name', 'asc'));
+  onSnapshot(membersQuery, (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+        const memberData = { id: change.doc.id, ...change.doc.data() };
+        const index = allMembersData.findIndex(m => m.id === change.doc.id);
+
+        if (change.type === "added") {
+            allMembersData.push(memberData);
+        }
+        if (change.type === "modified") {
+            if (index > -1) allMembersData[index] = memberData;
+        }
+        if (change.type === "removed") {
+            if (index > -1) allMembersData.splice(index, 1);
+        }
+    });
+    
+    // Sort after changes to maintain order
+    allMembersData.sort((a, b) => a.name.localeCompare(b.name));
+    
+    seedInitialMonthlyTasks();
     renderApp();
+    
     if (currentMessengerId) {
         identifyUserInOneSignal(currentMessengerId);
     }
