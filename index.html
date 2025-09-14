@@ -315,7 +315,6 @@ function renderDailyView(card, member, date) {
 
 function renderSharedMonthlyView() {
     const container = document.getElementById('monthly-goals-container');
-    // MODIFICATION: Save the scroll position of the list before re-rendering.
     const listElement = container.querySelector('.monthly-goals-list');
     const scrollPosition = listElement ? listElement.scrollTop : 0;
 
@@ -388,7 +387,6 @@ function renderSharedMonthlyView() {
     `;
     container.innerHTML = html;
 
-    // MODIFICATION: Restore the scroll position after the HTML has been updated. This prevents the page from jumping to the top.
     const newListElement = container.querySelector('.monthly-goals-list');
     if (newListElement) {
         newListElement.scrollTop = scrollPosition;
@@ -629,8 +627,20 @@ async function handleSharedMonthlyEvents(e) {
       if (taskText && member) {
           const date = memberViewStates[member.id]?.date || TODAY_STRING;
           const newGoal = { id: crypto.randomUUID(), text: taskText, completed: false, totalTime: 0, isRunning: false, startTime: null };
+          
           await updateDoc(memberDocRef, { [`dailyTasks.${date}`]: arrayUnion(newGoal) });
-          alert(`'${taskText}' added to your daily goals for ${date}!`);
+          
+          await updateAllMembersMonthlyTasks(monthStr, (tasks) => 
+            tasks.map(task => {
+                if (task.id === taskId) {
+                    const updatedCompletedBy = { ...task.completedBy, [currentMessengerId]: true };
+                    return { ...task, completedBy: updatedCompletedBy };
+                }
+                return task;
+            })
+          );
+
+          alert(`'${taskText}' added to your daily goals for ${date} and marked as complete for the month!`);
       }
       return;
   }
