@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF--8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Tejal's Study Group - Upgraded Edition</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -19,17 +19,17 @@
   @keyframes gradientBG {
     0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
   }
-  .card-hover, button, input, select {
+  /* --- REFINED HOVER EFFECT --- */
+  .card-hover, button, input, select, textarea {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .card-hover:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(124, 58, 237, 0.15);
+    box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.2), 0 8px 10px -6px rgba(124, 58, 237, 0.1);
   }
   button:hover {
-    transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: scale(1.03); box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   }
-  input:focus, select:focus {
+  input:focus, select:focus, textarea:focus {
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3); border-color: #8b5cf6;
   }
   .goals-list::-webkit-scrollbar, .messages-container::-webkit-scrollbar, .monthly-goals-list::-webkit-scrollbar { width: 8px; }
@@ -53,6 +53,29 @@
   .fade-out { animation: fadeOut 0.4s ease-out forwards; }
   @keyframes fadeIn { from{opacity:0; transform:translateY(15px);} to{opacity:1; transform:translateY(0);} }
   @keyframes fadeOut { from{opacity:1; transform: scale(1);} to{opacity:0; transform: scale(0.95);} }
+
+  /* --- NEW STYLES FOR TASK UI --- */
+  .subject-header {
+      font-size: 1.1rem; font-weight: 700; color: #4338ca; margin-top: 1rem; margin-bottom: 0.5rem;
+      padding-bottom: 0.25rem; border-bottom: 2px solid #e0e7ff;
+  }
+  .subject-tag {
+      font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 9999px;
+      color: white; display: inline-block; margin-right: 8px;
+  }
+  .task-description {
+      display: none; /* Hidden by default */
+      font-size: 0.875rem; color: #475569; background-color: #f8fafc;
+      padding: 0.5rem 0.75rem; border-radius: 0.5rem; margin-top: 0.5rem;
+      border-left: 3px solid #a78bfa; white-space: pre-wrap;
+  }
+  .task-description.is-visible { display: block; }
+  .description-toggle-btn {
+      cursor: pointer; color: #94a3b8; font-weight: bold;
+      width: 20px; height: 20px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center;
+  }
+  .description-toggle-btn:hover { background-color: #e2e8f0; color: #4f46e5; }
 </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
@@ -135,23 +158,15 @@ OneSignal.push(function() {
 
 // --- Constants ---
 const INITIAL_MONTHLY_TASKS = [
-    // Anatomy - Long Essays
+    // ... (same as before)
     "Anatomy (LE): Blood Supply of Heart", "Anatomy (LE): Brachial Plexus", "Anatomy (LE): Femoral Triangle", "Anatomy (LE): Hip Joint", "Anatomy (LE): Ischiorectal Fossa", "Anatomy (LE): Knee Joint", "Anatomy (LE): Mammary Gland", "Anatomy (LE): Muscles of Mastication", "Anatomy (LE): Pancreas", "Anatomy (LE): Right Atrium", "Anatomy (LE): Sciatic Nerve", "Anatomy (LE): Shoulder Joint", "Anatomy (LE): Thyroid Gland", "Anatomy (LE): Urinary Bladder", "Anatomy (LE): Uterus",
-    // Anatomy - Short Essays
     "Anatomy (SE): Adductor Canal", "Anatomy (SE): Axillary Artery", "Anatomy (SE): Azygos Vein", "Anatomy (SE): Blood Supply of Stomach", "Anatomy (SE): Bronchopulmonary Segments", "Anatomy (SE): Caecum", "Anatomy (SE): Cavernous Sinus", "Anatomy (SE): Ciliary Ganglion", "Anatomy (SE): Circle of Willis", "Anatomy (SE): Clavipectoral Fascia", "Anatomy (SE): Corpus Callosum", "Anatomy (SE): Cubital Fossa", "Anatomy (SE): Deltoid Muscle", "Anatomy (SE): Development of Pancreas", "Anatomy (SE): Development of Spleen", "Anatomy (SE): Development of Tongue", "Anatomy (SE): Dorsalis Pedis Artery", "Anatomy (SE): Epiploic Foramen", "Anatomy (SE): Falx Cerebri", "Anatomy (SE): Femoral Sheath", "Anatomy (SE): Inferior Cerebellar Peduncle", "Anatomy (SE): Ischiorectal Fossa", "Anatomy (SE): Microscopic structure of Duodenum", "Anatomy (SE): Microscopic structure of Palatine Tonsil", "Anatomy (SE): Microscopic structure of Pancreas", "Anatomy (SE): Microscopic Structure of Ovary", "Anatomy (SE): Notochord", "Anatomy (SE): Pectoralis Major", "Anatomy (SE): Pelvic Diaphragm", "Anatomy (SE): Portal Vein", "Anatomy (SE): Portocaval Anastomosis", "Anatomy (SE): Prostate", "Anatomy (SE): Supports of Uterus", "Anatomy (SE): Thoracic Duct",
-    // Anatomy - Short Answers
     "Anatomy (SA): Barr Body", "Anatomy (SA): Cephalic Vein", "Anatomy (SA): Coracoid Process", "Anatomy (SA): Derivatives of Mesonephric Duct", "Anatomy (SA): Derivatives of Midgut", "Anatomy (SA): Dermatome", "Anatomy (SA): Development of Tongue", "Anatomy (SA): Development of Uterus", "Anatomy (SA): Dorsalis Pedis Artery", "Anatomy (SA): Epiploic Foramen", "Anatomy (SA): External Jugular Vein", "Anatomy (SA): Filum Terminale", "Anatomy (SA): First Rib", "Anatomy (SA): Innervation of Tongue", "Anatomy (SA): Ligaments of Spleen", "Anatomy (SA): Median Nerve in Carpal Tunnel", "Anatomy (SA): Nerve Supply of Urinary Bladder", "Anatomy (SA): Palmar Aponeurosis", "Anatomy (SA): Positions of Appendix", "Anatomy (SA): Sternal Angle",
-    // Physiology - Long Essays
     "Physiology (LE): Formation of Urine", "Physiology (LE): Regulation of Cardiac Output", "Physiology (LE): Mechanism of Blood Coagulation", "Physiology (LE): Plasma Proteins", "Physiology (LE): Hypoxia", "Physiology (LE): ECG", "Physiology (LE): Regulation of Blood Pressure", "Physiology (LE): Cardiac Cycle", "Physiology (LE): Thyroid Hormones", "Physiology (LE): Regulation of Menstrual Cycle", "Physiology (LE): Muscle Spindle and Muscle Tone", "Physiology (LE): Basal Ganglia", "Physiology (LE): Neuromuscular Junction", "Physiology (LE): Pain Pathway", "Physiology (LE): Growth Hormone", "Physiology (LE): Calcium Homeostasis",
-    // Physiology - Short Essays
     "Physiology (SE): Rennin-Angiotensin Mechanism", "Physiology (SE): Complications of Mismatched Blood Transfusion", "Physiology (SE): Deglutition Reflex", "Physiology (SE): Oxygen-Dissociation Curve", "Physiology (SE): Functions of Stomach", "Physiology (SE): Active Transport", "Physiology (SE): Chloride Shift", "Physiology (SE): Glomerular Filtration Rate (GFR)", "Physiology (SE): P-R Interval", "Physiology (SE): Sino-Aortic Reflex", "Physiology (SE): Functions of Plasma Proteins", "Physiology (SE): Pulmonary Surfactant", "Physiology (SE): UMN and LMN Lesion", "Physiology (SE): Refractive Errors of the Eye", "Physiology (SE): Functions of Middle Ear", "Physiology (SE): Referred Pain", "Physiology (SE): Stretch Reflex", "Physiology (SE): Spermatogenesis", "Physiology (SE): Visual Pathway", "Physiology (SE): Cushing's Syndrome", "Physiology (SE): Endometrial changes during Menstrual Cycle", "Physiology (SE): Actions of Insulin", "Physiology (SE): Functions of Hypothalamus", "Physiology (SE): Functions of Cerebellum",
-    // Physiology - Short Answers
     "Physiology (SA): Triple Response", "Physiology (SA): Cheyne-Stokes Respiration", "Physiology (SA): Vagal Tone", "Physiology (SA): Alkaline Tide", "Physiology (SA): Juxtaglomerular Apparatus", "Physiology (SA): Facilitated Diffusion", "Physiology (SA): Cyanosis", "Physiology (SA): Heart Sounds", "Physiology (SA): Cretinism / Myxoedema", "Physiology (SA): Saltatory Conduction", "Physiology (SA): Inhibin", "Physiology (SA): Oxytocin", "Physiology (SA): Taste Pathway", "Physiology (SA): Acromegaly", "Physiology (SA): Functions of ADH", "Physiology (SA): Aphasia", "Physiology (SA): Babinski's Sign", "Physiology (SA): Renshaw Cell Inhibition",
-    // Biochemistry - Long Essays
     "Biochemistry (LE): Citric Acid Cycle (TCA Cycle)", "Biochemistry (LE): Metabolism of Phenylalanine and Tyrosine", "Biochemistry (LE): Regulation of Blood Calcium Level", "Biochemistry (LE): Protein Biosynthesis (Translation)", "Biochemistry (LE): Recombinant DNA Technology", "Biochemistry (LE): Catabolism of Purine Nucleotides",
-    // Biochemistry - Short Essays
     "Biochemistry (SE): Fatty Liver and Lipotropic Factors", "Biochemistry (SE): Urea Cycle", "Biochemistry (SE): Glycogenolysis", "Biochemistry (SE): Competitive Inhibition", "Biochemistry (SE): Antioxidants", "Biochemistry (SE): Metabolic changes in Diabetes Mellitus", "Biochemistry (SE): Glycogenesis", "Biochemistry (SE): Cell Membrane", "Biochemistry (SE): Compounds derived from Cholesterol", "Biochemistry (SE): Renal Mechanisms in Acid Base Balance", "Biochemistry (SE): Genetic Code", "Biochemistry (SE): Catabolism of Purines", "Biochemistry (SE): Formation of Bilirubin", "Biochemistry (SE): Metabolic Acidosis", "Biochemistry (SE): Basal Metabolic Rate (BMR)", "Biochemistry (SE): Polymerase Chain Reaction (PCR)", "Biochemistry (SE): Porphyrias",
-    // Biochemistry - Short Answers
     "Biochemistry (SA): Oncogenes", "Biochemistry (SA): Uncouplers of Oxidative Phosphorylation", "Biochemistry (SA): Significance of HMP Pathway", "Biochemistry (SA): Tumor Markers", "Biochemistry (SA): Essential Amino Acids", "Biochemistry (SA): Endoplasmic Reticulum", "Biochemistry (SA): Creatinine Clearance Test", "Biochemistry (SA): Dietary Fiber", "Biochemistry (SA): Gout"
 ];
 
@@ -176,11 +191,24 @@ const formatTime = (ms) => {
 
 const getTotalTimeSpent = (goal) => (goal.totalTime || 0) + (goal.isRunning && goal.startTime ? Date.now() - goal.startTime : 0);
 const getInitials = (name) => (name || 'U').split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
-const pickColorForName = (name) => {
-    const colors = ['#7c3aed', '#06b6d4', '#ef4444', '#f59e0b', '#0ea5a4', '#a78bfa', '#10b981'];
+const pickColorForName = (name, saturation = 60, lightness = 50) => {
     let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = (hash << 5) - hash + name.charCodeAt(i);
-    return colors[Math.abs(hash) % colors.length];
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        hash |= 0; 
+    }
+    return `hsl(${hash % 360}, ${saturation}%, ${lightness}%)`;
+};
+
+const groupTasksBySubject = (tasks) => {
+    return (tasks || []).reduce((acc, task) => {
+        const subject = task.subject || 'General';
+        if (!acc[subject]) {
+            acc[subject] = [];
+        }
+        acc[subject].push(task);
+        return acc;
+    }, {});
 };
 
 // --- Push Notification Functions ---
@@ -265,7 +293,7 @@ function createMemberCard(member) {
     card.innerHTML = `
       <div class="flex justify-between items-start mb-5">
         <div class="flex items-center gap-3">
-          <div class="avatar-container w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-xl" style="background-color:${member.avatarColor}">${getInitials(member.name)}</div>
+          <div class="avatar-container w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-xl" style="background-color:${pickColorForName(member.name)}">${getInitials(member.name)}</div>
           <h3 class="text-2xl font-extrabold text-indigo-800">${member.name}</h3>
         </div>
         <button class="delete-member-btn text-indigo-400 hover:text-red-600 p-1" aria-label="Delete member">
@@ -284,9 +312,13 @@ function createMemberCard(member) {
         <div class="total-time-label text-xs mt-2 text-indigo-500 font-medium"></div>
       </div>
       <div class="goals-list flex-grow overflow-y-auto max-h-80 pr-2"></div>
-      <div class="mt-6 pt-5 border-t flex flex-col sm:flex-row gap-3">
-        <input type="text" class="new-goal-input flex-grow p-3 border border-indigo-300 rounded-xl" placeholder="Add a new daily goal..." />
-        <button class="add-goal-btn bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-800">Add Goal</button>
+      <div class="mt-6 pt-5 border-t space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input type="text" class="new-goal-subject-input p-3 border border-indigo-300 rounded-xl" placeholder="Subject (e.g., Anatomy)" />
+              <input type="text" class="new-goal-text-input p-3 border border-indigo-300 rounded-xl" placeholder="Task name..." />
+          </div>
+          <textarea class="new-goal-desc-input w-full p-3 border border-indigo-300 rounded-xl text-sm" placeholder="Optional: Add more details..."></textarea>
+          <button class="add-goal-btn w-full bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-800">Add Goal</button>
       </div>
       `;
     return card;
@@ -319,8 +351,7 @@ function renderSharedMonthlyView() {
     const scrollPosition = listElement ? listElement.scrollTop : 0;
 
     if (allMembersData.length === 0) {
-        container.innerHTML = '';
-        return;
+        container.innerHTML = ''; return;
     }
 
     const monthStr = getYearMonthString(calendarDate);
@@ -331,8 +362,7 @@ function renderSharedMonthlyView() {
         <div class="flex justify-between items-center mb-5">
             <h2 class="text-2xl font-semibold text-purple-700">Group Monthly Goals (${new Date(monthStr).toLocaleString('default', { month: 'long', timeZone: 'UTC' })})</h2>
         </div>
-        <div class="space-y-4 mb-6">
-    `;
+        <div class="space-y-4 mb-6">`;
 
     allMembersData.forEach(member => {
         const completedCount = monthlyTasks.filter(task => task.completedBy?.[member.id]).length;
@@ -346,43 +376,57 @@ function renderSharedMonthlyView() {
                 <div class="w-full bg-purple-200 rounded-full h-2.5">
                     <div class="bg-purple-600 h-2.5 rounded-full" style="width: ${progress}%;"></div>
                 </div>
-            </div>
-        `;
+            </div>`;
     });
-
     html += `</div>`;
 
     if (monthlyTasks.length === 0) {
         html += '<p class="text-purple-400 p-4 text-center">No monthly goals set for this month.</p>';
     } else {
-        html += `<div class="monthly-goals-list flex-grow overflow-y-auto max-h-96 pr-2">` + 
-        monthlyTasks.map(task => `
-            <div class="goal-item p-3 rounded-xl hover:bg-purple-100 group" data-task-id="${task.id}">
-                <div class="flex justify-between items-center">
-                    <p class="font-semibold text-purple-800">${task.text}</p>
-                    <div class="flex items-center gap-2">
-                        <button class="copy-to-daily-btn text-purple-400 hover:text-purple-600" title="Copy to my Daily Tasks">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zM-1 8a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1h-15A.5.5 0 0 1-1 8z"/></svg>
-                        </button>
-                        <button class="delete-goal-btn text-purple-400 hover:text-red-500" title="Delete Monthly Goal">X</button>
+        const groupedTasks = groupTasksBySubject(monthlyTasks);
+        html += `<div class="monthly-goals-list flex-grow overflow-y-auto max-h-96 pr-2">`;
+        Object.keys(groupedTasks).sort().forEach(subject => {
+            html += `<h3 class="subject-header" style="color:#5b21b6; border-color:#ddd6fe;">${subject}</h3>`;
+            html += groupedTasks[subject].map(task => `
+                <div class="goal-item p-3 rounded-xl hover:bg-purple-50 group" data-task-id="${task.id}">
+                    <div class="flex items-start">
+                        <div class="flex-grow">
+                            <p class="font-semibold text-purple-800">
+                                <span class="subject-tag" style="background-color: ${pickColorForName(task.subject || 'General', 50, 45)};">${task.subject || 'General'}</span>
+                                ${task.text}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2 ml-2">
+                           ${task.description ? `<button class="description-toggle-btn" title="Show description">ⓘ</button>` : ''}
+                           <button class="copy-to-daily-btn text-purple-400 hover:text-purple-600" title="Copy to my Daily Tasks">
+                               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zM-1 8a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1h-15A.5.5 0 0 1-1 8z"/></svg>
+                           </button>
+                           <button class="delete-goal-btn text-purple-400 hover:text-red-500" title="Delete Monthly Goal">X</button>
+                        </div>
+                    </div>
+                    ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2 mt-3 text-sm">
+                        ${allMembersData.map(m => `
+                            <label class="flex items-center gap-2 cursor-pointer p-1">
+                                <input type="checkbox" class="monthly-goal-checkbox h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500" data-member-id="${m.id}" ${task.completedBy?.[m.id] ? 'checked' : ''}>
+                                <span class="text-slate-700">${m.name.split(' ')[0]}</span>
+                            </label>
+                        `).join('')}
                     </div>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2 mt-3 text-sm">
-                    ${allMembersData.map(m => `
-                        <label class="flex items-center gap-2 cursor-pointer p-1">
-                            <input type="checkbox" class="monthly-goal-checkbox h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500" data-member-id="${m.id}" ${task.completedBy?.[m.id] ? 'checked' : ''}>
-                            <span class="text-slate-700">${m.name.split(' ')[0]}</span>
-                        </label>
-                    `).join('')}
-                </div>
-            </div>
-        `).join('') + `</div>`;
+            `).join('');
+        });
+        html += `</div>`;
     }
 
     html += `
-        <div class="mt-6 pt-5 border-t flex flex-col sm:flex-row gap-3">
-          <input type="text" id="new-monthly-goal-input" class="flex-grow p-3 border border-purple-300 rounded-xl" placeholder="Add new group monthly goal..." />
-          <button id="add-monthly-goal-btn" class="bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl hover:bg-purple-800">Add Goal</button>
+        <div class="mt-6 pt-5 border-t space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input type="text" id="new-monthly-goal-subject" class="flex-grow p-3 border border-purple-300 rounded-xl" placeholder="Subject (e.g., Anatomy)" />
+                <input type="text" id="new-monthly-goal-text" class="flex-grow p-3 border border-purple-300 rounded-xl" placeholder="New group goal..." />
+            </div>
+            <textarea id="new-monthly-goal-desc" class="w-full p-3 border border-purple-300 rounded-xl text-sm" placeholder="Optional: Add description..."></textarea>
+            <button id="add-monthly-goal-btn" class="w-full bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl hover:bg-purple-800">Add Goal</button>
         </div>
     `;
     container.innerHTML = html;
@@ -401,23 +445,37 @@ function renderGoalsForMember(listContainer, memberId, date, goals) {
     }
 
     const sortedGoals = [...goals].sort((a, b) => a.completed - b.completed);
-    listContainer.innerHTML = sortedGoals.map(goal => `
-        <div class="goal-item flex items-center justify-between p-3 rounded-xl hover:bg-indigo-100 group ${goal.isRunning ? 'timer-running bg-green-50' : ''}" data-goal-id="${goal.id}" data-goal-date="${date}">
-            <input type="checkbox" class="goal-checkbox h-5 w-5 rounded text-indigo-600" ${goal.completed ? 'checked' : ''} ${goal.isRunning ? 'disabled' : ''} />
-            <div class="ml-3 flex-grow">
-                <span class="${goal.completed ? 'line-through text-indigo-400' : ''}">${goal.text}</span>
-                <div class="text-xs text-indigo-500 timer-display ${goal.isRunning ? 'text-green-600' : ''}">${formatTime(getTotalTimeSpent(goal))}</div>
-            </div>
-            <div class="flex items-center gap-2 ml-3">
-                ${!goal.completed ? (goal.isRunning
-                    ? `<button class="stop-btn timer-control-btn" data-action="stop">■</button>`
-                    : `<button class="play-btn timer-control-btn" data-action="start">▶</button>`
-                ) : ''}
-                <button class="delete-goal-btn text-indigo-400 hover:text-red-500" title="Delete Goal">X</button>
-            </div>
-        </div>
-    `).join('');
+    const groupedTasks = groupTasksBySubject(sortedGoals);
+    let html = '';
 
+    Object.keys(groupedTasks).sort().forEach(subject => {
+        html += `<h3 class="subject-header">${subject}</h3>`;
+        html += groupedTasks[subject].map(goal => `
+            <div class="goal-item p-3 rounded-xl hover:bg-indigo-100 group ${goal.isRunning ? 'timer-running bg-green-50' : ''}" data-goal-id="${goal.id}" data-goal-date="${date}">
+                <div class="flex items-start">
+                    <input type="checkbox" class="goal-checkbox h-5 w-5 mt-1 rounded text-indigo-600" ${goal.completed ? 'checked' : ''} ${goal.isRunning ? 'disabled' : ''} />
+                    <div class="ml-3 flex-grow">
+                        <p class="${goal.completed ? 'line-through text-indigo-400' : ''}">
+                            <span class="subject-tag" style="background-color: ${pickColorForName(goal.subject || 'General', 60, 50)};">${goal.subject || 'General'}</span>
+                            ${goal.text}
+                        </p>
+                        <div class="text-xs text-indigo-500 timer-display ${goal.isRunning ? 'text-green-600' : ''}">${formatTime(getTotalTimeSpent(goal))}</div>
+                    </div>
+                    <div class="flex items-center gap-2 ml-3">
+                        ${goal.description ? `<button class="description-toggle-btn" title="Show description">ⓘ</button>` : ''}
+                        ${!goal.completed ? (goal.isRunning
+                            ? `<button class="stop-btn timer-control-btn" data-action="stop">■</button>`
+                            : `<button class="play-btn timer-control-btn" data-action="start">▶</button>`
+                        ) : ''}
+                        <button class="delete-goal-btn text-indigo-400 hover:text-red-500" title="Delete Goal">X</button>
+                    </div>
+                </div>
+                ${goal.description ? `<div class="task-description">${goal.description}</div>` : ''}
+            </div>
+        `).join('');
+    });
+
+    listContainer.innerHTML = html;
     goals.forEach(g => { if (g.isRunning) startTimerDisplay(memberId, date, g.id); });
 }
 
@@ -449,21 +507,33 @@ function updateMessengerUserSelect() {
 // --- Data Seeding ---
 async function seedInitialMonthlyTasks() {
     const monthStr = getYearMonthString(new Date());
-    const seedFlag = `tasksSeeded_${monthStr}`;
+    const seedFlag = `tasksSeeded_v2_${monthStr}`; // new version flag
     if (localStorage.getItem(seedFlag) || allMembersData.length === 0) {
         return;
     }
     
-    // Check if tasks already exist for this month to prevent overwriting
     const firstMemberDoc = await getDoc(doc(db, "members", allMembersData[0].id));
     if (firstMemberDoc.exists() && firstMemberDoc.data().monthlyTasks?.[monthStr]?.length > 0) {
-        localStorage.setItem(seedFlag, 'true'); // Mark as "seeded" to prevent re-checking
+        localStorage.setItem(seedFlag, 'true'); 
         return;
     }
 
     console.log("Seeding initial monthly tasks for", monthStr);
     const completedBy = Object.fromEntries(allMembersData.map(m => [m.id, false]));
-    const newTasks = INITIAL_MONTHLY_TASKS.map(text => ({ id: crypto.randomUUID(), text, completedBy }));
+    
+    const newTasks = INITIAL_MONTHLY_TASKS.map(fullText => {
+        const regex = /^(.*?)\s\((.*?)\):\s(.*)$/;
+        const match = fullText.match(regex);
+        let subject = 'General';
+        let text = fullText;
+
+        if (match) {
+            subject = match[1].trim();
+            text = `(${match[2].trim()}) ${match[3].trim()}`;
+        }
+
+        return { id: crypto.randomUUID(), subject, text, description: '', completedBy };
+    });
 
     try {
         const batch = writeBatch(db);
@@ -499,13 +569,26 @@ async function handleMemberEvents(e) {
 
   // Add Daily Goal
   if (e.target.matches('.add-goal-btn')) {
-    const input = memberCard.querySelector('.new-goal-input');
-    const text = input.value.trim();
+    const subjectInput = memberCard.querySelector('.new-goal-subject-input');
+    const textInput = memberCard.querySelector('.new-goal-text-input');
+    const descInput = memberCard.querySelector('.new-goal-desc-input');
+    const text = textInput.value.trim();
     const date = memberViewStates[memberId].date;
     if (text && date) {
-      const newGoal = { id: crypto.randomUUID(), text, completed: false, totalTime: 0, isRunning: false, startTime: null };
+      const newGoal = { 
+          id: crypto.randomUUID(), 
+          subject: subjectInput.value.trim(), 
+          text, 
+          description: descInput.value.trim(), 
+          completed: false, 
+          totalTime: 0, 
+          isRunning: false, 
+          startTime: null 
+      };
       await updateDoc(memberDocRef, { [`dailyTasks.${date}`]: arrayUnion(newGoal) });
-      input.value = '';
+      subjectInput.value = '';
+      textInput.value = '';
+      descInput.value = '';
     }
     return;
   }
@@ -534,8 +617,15 @@ async function handleMemberEvents(e) {
   const goalItem = e.target.closest('.goal-item');
   if (!goalItem) return;
   const { goalId, goalDate } = goalItem.dataset;
-  if (!goalId || !goalDate) return;
 
+  // Toggle description visibility
+  if (e.target.closest('.description-toggle-btn')) {
+      const descEl = goalItem.querySelector('.task-description');
+      if(descEl) descEl.classList.toggle('is-visible');
+      return;
+  }
+
+  if (!goalId || !goalDate) return;
   // Timer Control
   if (e.target.closest('.timer-control-btn')) {
     const action = e.target.closest('.timer-control-btn').dataset.action;
@@ -581,20 +671,38 @@ async function handleSharedMonthlyEvents(e) {
 
   // Add Monthly Goal
   if (e.target.matches('#add-monthly-goal-btn')) {
-    const input = document.getElementById('new-monthly-goal-input');
-    const text = input.value.trim();
+    const subjectInput = document.getElementById('new-monthly-goal-subject');
+    const textInput = document.getElementById('new-monthly-goal-text');
+    const descInput = document.getElementById('new-monthly-goal-desc');
+    const text = textInput.value.trim();
     if (!text || allMembersData.length === 0) return;
     
     const completedBy = Object.fromEntries(allMembersData.map(m => [m.id, false]));
-    const newMonthlyTask = { id: crypto.randomUUID(), text, completedBy };
+    const newMonthlyTask = { 
+        id: crypto.randomUUID(), 
+        subject: subjectInput.value.trim(), 
+        text, 
+        description: descInput.value.trim(), 
+        completedBy 
+    };
 
     await updateAllMembersMonthlyTasks(monthStr, (tasks) => [...tasks, newMonthlyTask]);
-    input.value = '';
+    subjectInput.value = '';
+    textInput.value = '';
+    descInput.value = '';
     return;
   }
 
   const goalItem = e.target.closest('.goal-item');
   if (!goalItem) return;
+
+  // Toggle description
+  if (e.target.closest('.description-toggle-btn')) {
+      const descEl = goalItem.querySelector('.task-description');
+      if(descEl) descEl.classList.toggle('is-visible');
+      return;
+  }
+  
   const taskId = goalItem.dataset.taskId;
 
   // Monthly Goal Checkbox Change
@@ -622,11 +730,20 @@ async function handleSharedMonthlyEvents(e) {
       }
       const member = allMembersData.find(m => m.id === currentMessengerId);
       const memberDocRef = doc(db, 'members', currentMessengerId);
-      const taskText = allMembersData[0]?.monthlyTasks?.[monthStr]?.find(t => t.id === taskId)?.text;
+      const sourceTask = allMembersData[0]?.monthlyTasks?.[monthStr]?.find(t => t.id === taskId);
 
-      if (taskText && member) {
+      if (sourceTask && member) {
           const date = memberViewStates[member.id]?.date || TODAY_STRING;
-          const newGoal = { id: crypto.randomUUID(), text: taskText, completed: false, totalTime: 0, isRunning: false, startTime: null };
+          const newGoal = { 
+              id: crypto.randomUUID(), 
+              subject: sourceTask.subject,
+              text: sourceTask.text, 
+              description: sourceTask.description,
+              completed: false, 
+              totalTime: 0, 
+              isRunning: false, 
+              startTime: null 
+          };
           
           await updateDoc(memberDocRef, { [`dailyTasks.${date}`]: arrayUnion(newGoal) });
           
@@ -640,7 +757,7 @@ async function handleSharedMonthlyEvents(e) {
             })
           );
 
-          alert(`'${taskText}' added to your daily goals for ${date} and marked as complete for the month!`);
+          alert(`'${sourceTask.text}' added to your daily goals for ${date} and marked as complete for the month!`);
       }
       return;
   }
@@ -701,7 +818,7 @@ function setupEventHandlers() {
     const name = input.value.trim();
     if (!name) return;
     await addDoc(collection(db, 'members'), {
-      name, dailyTasks: {}, monthlyTasks: {}, createdAt: serverTimestamp(), avatarColor: pickColorForName(name)
+      name, dailyTasks: {}, monthlyTasks: {}, createdAt: serverTimestamp()
     });
     input.value = '';
   });
@@ -783,7 +900,6 @@ function setupFirestoreListeners() {
         }
     });
     
-    // Sort after changes to maintain order
     allMembersData.sort((a, b) => a.name.localeCompare(b.name));
     
     seedInitialMonthlyTasks();
