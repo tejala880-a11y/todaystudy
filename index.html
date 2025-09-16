@@ -152,29 +152,32 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 import { 
     getFirestore, collection, doc, addDoc, onSnapshot, 
     deleteDoc, runTransaction, serverTimestamp, query, orderBy 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // =============================================================
-// PASTE YOUR FIREBASE CONFIGURATION HERE
+// YOUR FIREBASE CONFIGURATION
 // =============================================================
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyC8zXcbDNwdm2LMbpzV1KkN3wiTyh_vZ3M",
+  authDomain: "o-study-f5081.firebaseapp.com",
+  projectId: "o-study-f5081",
+  storageBucket: "o-study-f5081.appspot.com", // Note: I corrected this from .firebasestorage.app
+  messagingSenderId: "338420264881",
+  appId: "1:338420264881:web:c4119859174ab264709790",
+  measurementId: "G-8HCPGJ13MH"
 };
 
 // =============================================================
 // INITIALIZE FIREBASE AND GET SERVICES
 // =============================================================
 const app = initializeApp(firebaseConfig);
-const auth = getAuth();
+const auth = getAuth(app);
 const db = getFirestore(app);
+const analytics = getAnalytics(app); // Initialize Analytics as requested
 
 // =============================================================
 // CONSTANTS & STATE
@@ -192,6 +195,7 @@ let currentUser = { id: null, name: null };
 // UTILITY FUNCTIONS
 // =============================================================
 const getInitials = (name) => {
+    if (!name) return '';
     const names = name.split(' ');
     let initials = names[0].substring(0, 1).toUpperCase();
     if (names.length > 1) {
@@ -202,6 +206,7 @@ const getInitials = (name) => {
 
 const COLORS = ['#ef4444', '#f97316', '#84cc16', '#10b981', '#06b6d4', '#6366f1', '#a855f7', '#ec4899'];
 const pickColorForName = (name) => {
+    if (!name) return COLORS[0];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
         hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -252,8 +257,7 @@ function renderDailyView(card, member, date) {
     card.querySelector('.progress-count').textContent = `${completedTasks} / ${goalsForDate.length} Goals`;
     card.querySelector('.progress-bar').style.width = goalsForDate.length > 0 ? `${(completedTasks / goalsForDate.length) * 100}%` : '0%';
     
-    // You'll need to implement time tracking logic for this to be non-zero
-    const totalTime = 0; // Placeholder
+    const totalTime = 0; // Placeholder for time tracking
     card.querySelector('.total-time-label').textContent = `Total time today: ${formatTime(totalTime)}`;
     
     renderOrUpdateGoalsList(card.querySelector('.goals-list'), member.id, date, goalsForDate);
@@ -306,7 +310,7 @@ function renderOrUpdateGoalsList(listContainer, memberId, date, goals) {
             const goalHtml = createGoalItemHTML(goal, memberId, date);
             listContainer.insertAdjacentHTML('beforeend', goalHtml);
             const newEl = listContainer.lastElementChild;
-            newEl.classList.add('fade-in');
+            if(newEl) newEl.classList.add('fade-in');
         }
     });
 }
@@ -333,11 +337,7 @@ function updateUserSelector() {
     });
     
     const userSelectorSection = document.getElementById('user-selector-section');
-    if (allMembersData.length > 0) {
-        userSelectorSection.classList.remove('hidden');
-    } else {
-        userSelectorSection.classList.add('hidden');
-    }
+    userSelectorSection.classList.toggle('hidden', allMembersData.length <= 1);
 }
 
 function renderMessages(messages) {
@@ -349,7 +349,7 @@ function renderMessages(messages) {
         const isCurrentUser = msg.senderId === currentUser.id;
 
         const messageDiv = document.createElement('div');
-        messageDiv.classList.add('p-3', 'rounded-lg', 'max-w-xs', 'sm:max-w-md');
+        messageDiv.classList.add('p-3', 'rounded-lg', 'max-w-xs', 'sm:max-w-md', 'fade-in');
         
         if (isCurrentUser) {
             messageDiv.classList.add('bg-indigo-500', 'text-white', 'self-end');
@@ -363,7 +363,6 @@ function renderMessages(messages) {
         `;
         container.appendChild(messageDiv);
     });
-    // Scroll to the bottom
     container.scrollTop = container.scrollHeight;
 }
 
@@ -483,7 +482,6 @@ async function handleGoalCheckboxChange(e, memberId, goalDate, goalId) {
     const isChecked = checkbox.checked;
     const goalItem = checkbox.closest('.goal-item');
 
-    // **OPTIMISTIC UI**: Update UI immediately
     goalItem.classList.toggle('is-complete', isChecked);
     checkbox.disabled = true;
 
@@ -501,7 +499,6 @@ async function handleGoalCheckboxChange(e, memberId, goalDate, goalId) {
         });
     } catch (error) {
         console.error("Optimistic update failed:", error);
-        // **REVERT UI**: Change back on failure
         goalItem.classList.toggle('is-complete', !isChecked);
         checkbox.checked = !isChecked;
         alert("Couldn't save your change. Please try again.");
@@ -536,12 +533,13 @@ async function handleSendMessage() {
 // MAIN APP LOGIC & EVENT LISTENERS SETUP
 // =============================================================
 function main() {
-    // Show app content and hide loader
     document.getElementById('app-content').classList.remove('hidden');
     document.getElementById('loader').classList.add('hidden');
     
-    // --- Setup Main Event Listeners using Delegation ---
     document.getElementById('add-member-btn').addEventListener('click', handleAddMember);
+    document.getElementById('new-member-name-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleAddMember();
+    });
 
     document.getElementById('send-message-btn').addEventListener('click', handleSendMessage);
     document.getElementById('message-input').addEventListener('keydown', (e) => {
@@ -589,17 +587,13 @@ function main() {
         }
     });
     
-    // --- Firestore Real-time Listeners ---
     const membersQuery = query(collection(db, "members"));
     onSnapshot(membersQuery, (snapshot) => {
         allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         snapshot.docChanges().forEach((change) => {
             const memberData = { id: change.doc.id, ...change.doc.data() };
-            if (change.type === "added") {
-                renderOrUpdateMemberCard(memberData);
-            }
-            if (change.type === "modified") {
+            if (change.type === "added" || change.type === "modified") {
                 renderOrUpdateMemberCard(memberData);
             }
             if (change.type === "removed") {
@@ -607,14 +601,11 @@ function main() {
             }
         });
         
-        // Update empty state visibility
         const emptyState = document.getElementById('empty-state-members');
         emptyState.classList.toggle('hidden', allMembersData.length > 0);
 
-        // Update the user selector dropdown
         updateUserSelector();
 
-        // Set current user logic
         const storedUser = localStorage.getItem('studyGroupCurrentUser');
         const userExists = storedUser && allMembersData.some(m => m.id === JSON.parse(storedUser).id);
         
@@ -627,7 +618,7 @@ function main() {
             currentUser = { id: null, name: null };
             localStorage.removeItem('studyGroupCurrentUser');
         }
-        updateUserSelector(); // Call again to set the correct selected option
+        updateUserSelector();
     });
 
     const messagesQuery = query(collection(db, "messages"), orderBy("timestamp", "asc"));
@@ -643,10 +634,8 @@ function main() {
 // =============================================================
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        // User is signed in.
         main();
     } else {
-        // User is signed out. Sign in anonymously.
         signInAnonymously(auth).catch((error) => {
             console.error("Anonymous sign-in failed:", error);
             alert("Could not connect to the service. Please check your internet connection and Firebase setup.");
