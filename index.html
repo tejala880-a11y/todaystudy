@@ -3,52 +3,79 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tejal's Study Group - Turbo Edition</title>
+<title>Tejal's Study Group - Upgraded Edition</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 
 <style>
-  body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { font-family: 'Inter', sans-serif; }
   header {
     background: linear-gradient(270deg, #7c3aed, #06b6d4, #8b5cf6);
     background-size: 600% 600%;
     animation: gradientBG 12s ease infinite;
     color: white; border-radius: 1.5rem; box-shadow: 0 8px 30px rgba(124, 58, 237, 0.2);
   }
-  @keyframes gradientBG { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-  
-  /* --- SMOOTHER TRANSITIONS --- */
-  .progress-bar, .goal-item, .subject-tag, button, input { transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
-  .goal-item.is-complete .goal-text { text-decoration: line-through; opacity: 0.6; }
-  .goal-item { background-color: #fff; }
-  .goal-item:hover { background-color: #f9fafb; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.05);}
-  .goal-item.is-running { background-color: #f0fdf4; border-left-color: #22c55e; animation: pulseBG 2.5s infinite ease-in-out; }
-  @keyframes pulseBG { 0%,100%{ background-color: #f0fdf4; } 50%{ background-color: #dcfce7; } }
-
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
+  }
+  /* --- REFINED HOVER EFFECT --- */
+  .card-hover, button, input, select, textarea {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card-hover:hover {
+    box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.2), 0 8px 10px -6px rgba(124, 58, 237, 0.1);
+  }
+  button:hover:not(:disabled) {
+    transform: scale(1.03); box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
   input:focus, select:focus, textarea:focus {
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3); border-color: #8b5cf6;
   }
-  
-  /* Custom Scrollbars */
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 12px; }
-  ::-webkit-scrollbar-thumb { background: #a78bfa; border-radius: 12px; }
-  
-  /* Fade Animations */
+  .goals-list::-webkit-scrollbar, .messages-container::-webkit-scrollbar, .monthly-goals-list::-webkit-scrollbar { width: 8px; }
+  .goals-list::-webkit-scrollbar-track, .messages-container::-webkit-scrollbar-track, .monthly-goals-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 12px; }
+  .goals-list::-webkit-scrollbar-thumb, .messages-container::-webkit-scrollbar-thumb, .monthly-goals-list::-webkit-scrollbar-thumb { background: #a78bfa; border-radius: 12px; }
+  .goal-item:hover .delete-goal-btn, .goal-item:hover .copy-to-daily-btn { opacity: 1; transform: scale(1); }
+  .calendar-day.has-tasks { background-color: #e0e7ff; font-weight: 600; }
+  .calendar-day.is-today { box-shadow: 0 0 0 2px #7c3aed; border-radius: 0.5rem; }
+  .timer-running { animation: pulse 2.5s infinite ease-in-out; }
+  .timer-display { font-family: 'Courier New', monospace; font-weight: 700; letter-spacing: 0.5px; }
+  @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.6; } }
+  .play-btn, .stop-btn { width: 34px; height: 34px; border-radius: 50%; display:flex; align-items:center; justify-content:center; }
+  .play-btn { background-color: #10b981; color: white; }
+  .stop-btn { background-color: #ef4444; color: white; }
+  .delete-goal-btn, .copy-to-daily-btn { opacity: 0; transform: scale(0.8); transition: all 0.3s ease; }
+  .message { background-color: #f1f5f9; padding: 0.75rem 1rem; border-radius: 1.25rem; max-width: 85%; }
+  .message.sent { background-color: #e0e7ff; align-self: flex-end; border-bottom-right-radius: 0.5rem; }
+  .message.received { border-bottom-left-radius: 0.5rem; }
+  .link-bubble { color:#0f172a; text-decoration:underline; font-weight: 500; }
   .fade-in { animation: fadeIn 0.5s ease-out both; }
-  .fade-out-fast { animation: fadeOut 0.3s ease-out forwards; }
-  @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-  @keyframes fadeOut { from{opacity:1; transform:translateY(0);} to{opacity:0; transform:translateY(-10px);} }
+  .fade-out { animation: fadeOut 0.4s ease-out forwards; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(15px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes fadeOut { from{opacity:1; transform: scale(1);} to{opacity:0; transform: scale(0.95);} }
 
-  /* --- SKELETON LOADER --- */
-  .skeleton { animation: skeleton-loading 1.5s linear infinite alternate; }
-  @keyframes skeleton-loading {
-      0% { background-color: hsl(200, 20%, 80%); }
-      100% { background-color: hsl(200, 20%, 95%); }
+  /* --- NEW STYLES FOR TASK UI --- */
+  .subject-header {
+      font-size: 1.1rem; font-weight: 700; color: #4338ca; margin-top: 1rem; margin-bottom: 0.5rem;
+      padding-bottom: 0.25rem; border-bottom: 2px solid #e0e7ff;
   }
-  .skeleton-text { width: 100%; height: 1rem; margin-bottom: 0.5rem; border-radius: 0.25rem; }
-  .skeleton-avatar { width: 3rem; height: 3rem; border-radius: 9999px; }
+  .subject-tag {
+      font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 9999px;
+      color: white; display: inline-block; margin-right: 8px;
+  }
+  .task-description {
+      display: none; /* Hidden by default */
+      font-size: 0.875rem; color: #475569; background-color: #f8fafc;
+      padding: 0.5rem 0.75rem; border-radius: 0.5rem; margin-top: 0.5rem;
+      border-left: 3px solid #a78bfa; white-space: pre-wrap;
+  }
+  .task-description.is-visible { display: block; }
+  .description-toggle-btn {
+      cursor: pointer; color: #94a3b8; font-weight: bold;
+      width: 20px; height: 20px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center;
+  }
+  .description-toggle-btn:hover { background-color: #e2e8f0; color: #4f46e5; }
 </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
@@ -57,591 +84,767 @@
 
   <header class="text-center mb-8 p-6 md:p-8">
     <h1 class="text-4xl md:text-5xl font-extrabold tracking-wide mb-2">Tejal's Study Group</h1>
-    <p class="text-indigo-100 font-medium text-base md:text-lg mb-2">Turbo Edition ⚡️</p>
+    <p class="text-indigo-100 font-medium text-base md:text-lg mb-2">Upgraded for Maximum Productivity 🚀</p>
+    <div class="text-sm text-indigo-200">Daily & Monthly Goals, Timers, and Messenger.</div>
   </header>
-  
-  <div id="user-selector-section" class="bg-white p-4 rounded-2xl shadow-lg mb-8 card-hover hidden">
-    <div class="flex items-center gap-3 justify-center">
-        <label for="current-user-select" class="font-semibold text-lg text-indigo-600">I am:</label>
-        <select id="current-user-select" class="p-2 border border-indigo-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"></select>
+
+  <div id="members-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"></div>
+  <div id="loader" class="text-center py-10 text-slate-500">Authenticating...</div>
+  <div id="empty-state-members" class="hidden text-center py-10 bg-white rounded-2xl shadow-lg">
+    <p class="text-indigo-500 font-semibold">No members yet. Be the first to join below!</p>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-10">
+    <div class="xl:col-span-1">
+        <div id="master-calendar-container" class="bg-white p-6 rounded-3xl shadow-xl card-hover h-full"></div>
+    </div>
+    <div class="xl:col-span-2">
+        <div id="monthly-goals-container" class="bg-white p-6 rounded-3xl shadow-xl card-hover h-full"></div>
     </div>
   </div>
 
-  <div id="loader">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div class="bg-white p-6 rounded-3xl shadow-lg space-y-4">
-            <div class="flex items-center gap-3"><div class="skeleton skeleton-avatar"></div><div class="skeleton skeleton-text w-1/3 h-8"></div></div>
-            <div class="skeleton skeleton-text w-full"></div><div class="skeleton skeleton-text w-5/6"></div><div class="skeleton skeleton-text w-3/4"></div>
-        </div>
-        <div class="bg-white p-6 rounded-3xl shadow-lg space-y-4">
-            <div class="flex items-center gap-3"><div class="skeleton skeleton-avatar"></div><div class="skeleton skeleton-text w-1/3 h-8"></div></div>
-            <div class="skeleton skeleton-text w-full"></div><div class="skeleton skeleton-text w-5/6"></div><div class="skeleton skeleton-text w-3/4"></div>
-        </div>
+  <div id="messenger-section" class="bg-white p-6 rounded-3xl shadow-xl mb-10 card-hover">
+    <h2 class="text-2xl font-semibold mb-4 text-indigo-700">Group Messenger</h2>
+    <div class="flex items-center gap-3 mb-4 flex-wrap">
+        <label for="messenger-user-select" class="font-semibold text-indigo-600">I am:</label>
+        <select id="messenger-user-select" class="p-2 border border-indigo-300 rounded-lg">
+            <option value="">-- Select your name --</option>
+        </select>
+    </div>
+    <div id="messages-container" class="messages-container h-64 overflow-y-auto p-4 bg-slate-50 rounded-xl mb-4 flex flex-col gap-4"></div>
+    <div class="flex flex-col sm:flex-row gap-3">
+        <input type="text" id="message-input" placeholder="Type a message or paste a link..." class="flex-grow p-3 border border-indigo-300 rounded-xl" />
+        <button id="send-message-btn" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-700 shadow-md">Send</button>
     </div>
   </div>
 
-  <div id="app-content" class="hidden">
-      <div id="members-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"></div>
-      <div id="empty-state-members" class="hidden text-center py-10 bg-white rounded-2xl shadow-lg">
-        <p class="text-indigo-500 font-semibold">No members yet. Be the first to join below!</p>
-      </div>
-
-      <div id="messenger-section" class="bg-white p-6 rounded-3xl shadow-xl mb-10">
-        <h2 class="text-2xl font-bold mb-4 text-indigo-700">Group Messenger</h2>
-        <div id="messages-container" class="h-64 overflow-y-auto p-4 bg-slate-50 rounded-xl mb-4 flex flex-col gap-4"></div>
-        <div class="flex flex-col sm:flex-row gap-3">
-            <input type="text" id="message-input" placeholder="Type a message..." class="flex-grow p-3 border border-indigo-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500" />
-            <button id="send-message-btn" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-700 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">Send</button>
-        </div>
-      </div>
-
-      <div class="bg-white p-6 rounded-3xl shadow-xl">
-        <h2 class="text-2xl font-bold mb-5 text-indigo-700">Join the Group</h2>
-        <div class="flex flex-col sm:flex-row gap-4 items-center">
-          <input type="text" id="new-member-name-input" placeholder="Enter your name" class="flex-grow p-3 border border-indigo-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500" />
-          <button id="add-member-btn" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-700 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">Add Me</button>
-        </div>
-      </div>
+  <div class="bg-white p-6 rounded-3xl shadow-xl card-hover">
+    <h2 class="text-2xl font-semibold mb-5 text-indigo-700">Add a New Member</h2>
+    <div class="flex flex-col sm:flex-row gap-4 items-center">
+      <input type="text" id="new-member-name-input" placeholder="Enter your name" class="flex-grow p-3 border border-indigo-300 rounded-xl" />
+      <button id="add-member-btn" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-700 shadow-md">Add Me</button>
+    </div>
   </div>
-
 </div>
-<template id="member-card-template">
-    <div class="bg-white p-6 rounded-3xl shadow-lg flex flex-col">
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, runTransaction, query, orderBy, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// --- Firebase Configuration ---
+const firebaseConfig = {
+    apiKey: "AIzaSyC8zXcbDNwdm2LMbpzV1KkN3wiTyh_vZ3M",
+    authDomain: "o-study-f5081.firebaseapp.com",
+    projectId: "o-study-f5081",
+    storageBucket: "o-study-f5081.appspot.com",
+    messagingSenderId: "338420264881",
+    appId: "1:338420264881:web:c4119859174ab264709790"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// --- OneSignal Initialization ---
+window.OneSignal = window.OneSignal || [];
+OneSignal.push(function() {
+    OneSignal.init({
+        appId: "3908e089-73c0-40d4-9f2c-733204a82a01",
+        safari_web_id: "web.onesignal.auto.123456-7890ab-cdef-1234",
+        allowLocalhostAsSecureOrigin: true,
+    });
+});
+
+// --- Constants ---
+const INITIAL_MONTHLY_TASKS = [
+    "Anatomy (LE): Blood Supply of Heart", "Anatomy (LE): Brachial Plexus", "Anatomy (LE): Femoral Triangle", "Anatomy (LE): Hip Joint", "Anatomy (LE): Ischiorectal Fossa", "Anatomy (LE): Knee Joint", "Anatomy (LE): Mammary Gland", "Anatomy (LE): Muscles of Mastication", "Anatomy (LE): Pancreas", "Anatomy (LE): Right Atrium", "Anatomy (LE): Sciatic Nerve", "Anatomy (LE): Shoulder Joint", "Anatomy (LE): Thyroid Gland", "Anatomy (LE): Urinary Bladder", "Anatomy (LE): Uterus",
+    "Anatomy (SE): Adductor Canal", "Anatomy (SE): Axillary Artery", "Anatomy (SE): Azygos Vein", "Anatomy (SE): Blood Supply of Stomach", "Anatomy (SE): Bronchopulmonary Segments", "Anatomy (SE): Caecum", "Anatomy (SE): Cavernous Sinus", "Anatomy (SE): Ciliary Ganglion", "Anatomy (SE): Circle of Willis", "Anatomy (SE): Clavipectoral Fascia", "Anatomy (SE): Corpus Callosum", "Anatomy (SE): Cubital Fossa", "Anatomy (SE): Deltoid Muscle", "Anatomy (SE): Development of Pancreas", "Anatomy (SE): Development of Spleen", "Anatomy (SE): Development of Tongue", "Anatomy (SE): Dorsalis Pedis Artery", "Anatomy (SE): Epiploic Foramen", "Anatomy (SE): Falx Cerebri", "Anatomy (SE): Femoral Sheath", "Anatomy (SE): Inferior Cerebellar Peduncle", "Anatomy (SE): Microscopic structure of Duodenum", "Anatomy (SE): Microscopic structure of Palatine Tonsil", "Anatomy (SE): Microscopic structure of Pancreas", "Anatomy (SE): Microscopic Structure of Ovary", "Anatomy (SE): Notochord", "Anatomy (SE): Pectoralis Major", "Anatomy (SE): Pelvic Diaphragm", "Anatomy (SE): Portal Vein", "Anatomy (SE): Portocaval Anastomosis", "Anatomy (SE): Prostate", "Anatomy (SE): Supports of Uterus", "Anatomy (SE): Thoracic Duct",
+    "Anatomy (SA): Barr Body", "Anatomy (SA): Cephalic Vein", "Anatomy (SA): Coracoid Process", "Anatomy (SA): Derivatives of Mesonephric Duct", "Anatomy (SA): Derivatives of Midgut", "Anatomy (SA): Dermatome", "Anatomy (SA): Development of Uterus", "Anatomy (SA): External Jugular Vein", "Anatomy (SA): Filum Terminale", "Anatomy (SA): First Rib", "Anatomy (SA): Innervation of Tongue", "Anatomy (SA): Ligaments of Spleen", "Anatomy (SA): Median Nerve in Carpal Tunnel", "Anatomy (SA): Nerve Supply of Urinary Bladder", "Anatomy (SA): Palmar Aponeurosis", "Anatomy (SA): Positions of Appendix", "Anatomy (SA): Sternal Angle",
+    "Physiology (LE): Formation of Urine", "Physiology (LE): Regulation of Cardiac Output", "Physiology (LE): Mechanism of Blood Coagulation", "Physiology (LE): Plasma Proteins", "Physiology (LE): Hypoxia", "Physiology (LE): ECG", "Physiology (LE): Regulation of Blood Pressure", "Physiology (LE): Cardiac Cycle", "Physiology (LE): Thyroid Hormones", "Physiology (LE): Regulation of Menstrual Cycle", "Physiology (LE): Muscle Spindle and Muscle Tone", "Physiology (LE): Basal Ganglia", "Physiology (LE): Neuromuscular Junction", "Physiology (LE): Pain Pathway", "Physiology (LE): Growth Hormone", "Physiology (LE): Calcium Homeostasis",
+    "Physiology (SE): Rennin-Angiotensin Mechanism", "Physiology (SE): Complications of Mismatched Blood Transfusion", "Physiology (SE): Deglutition Reflex", "Physiology (SE): Oxygen-Dissociation Curve", "Physiology (SE): Functions of Stomach", "Physiology (SE): Active Transport", "Physiology (SE): Chloride Shift", "Physiology (SE): Glomerular Filtration Rate (GFR)", "Physiology (SE): P-R Interval", "Physiology (SE): Sino-Aortic Reflex", "Physiology (SE): Functions of Plasma Proteins", "Physiology (SE): Pulmonary Surfactant", "Physiology (SE): UMN and LMN Lesion", "Physiology (SE): Refractive Errors of the Eye", "Physiology (SE): Functions of Middle Ear", "Physiology (SE): Referred Pain", "Physiology (SE): Stretch Reflex", "Physiology (SE): Spermatogenesis", "Physiology (SE): Visual Pathway", "Physiology (SE): Cushing's Syndrome", "Physiology (SE): Endometrial changes during Menstrual Cycle", "Physiology (SE): Actions of Insulin", "Physiology (SE): Functions of Hypothalamus", "Physiology (SE): Functions of Cerebellum",
+    "Physiology (SA): Triple Response", "Physiology (SA): Cheyne-Stokes Respiration", "Physiology (SA): Vagal Tone", "Physiology (SA): Alkaline Tide", "Physiology (SA): Juxtaglomerular Apparatus", "Physiology (SA): Facilitated Diffusion", "Physiology (SA): Cyanosis", "Physiology (SA): Heart Sounds", "Physiology (SA): Cretinism / Myxoedema", "Physiology (SA): Saltatory Conduction", "Physiology (SA): Inhibin", "Physiology (SA): Oxytocin", "Physiology (SA): Taste Pathway", "Physiology (SA): Acromegaly", "Physiology (SA): Functions of ADH", "Physiology (SA): Aphasia", "Physiology (SA): Babinski's Sign", "Physiology (SA): Renshaw Cell Inhibition",
+    "Biochemistry (LE): Citric Acid Cycle (TCA Cycle)", "Biochemistry (LE): Metabolism of Phenylalanine and Tyrosine", "Biochemistry (LE): Regulation of Blood Calcium Level", "Biochemistry (LE): Protein Biosynthesis (Translation)", "Biochemistry (LE): Recombinant DNA Technology", "Biochemistry (LE): Catabolism of Purine Nucleotides",
+    "Biochemistry (SE): Fatty Liver and Lipotropic Factors", "Biochemistry (SE): Urea Cycle", "Biochemistry (SE): Glycogenolysis", "Biochemistry (SE): Competitive Inhibition", "Biochemistry (SE): Antioxidants", "Biochemistry (SE): Metabolic changes in Diabetes Mellitus", "Biochemistry (SE): Glycogenesis", "Biochemistry (SE): Cell Membrane", "Biochemistry (SE): Compounds derived from Cholesterol", "Biochemistry (SE): Renal Mechanisms in Acid Base Balance", "Biochemistry (SE): Genetic Code", "Biochemistry (SE): Catabolism of Purines", "Biochemistry (SE): Formation of Bilirubin", "Biochemistry (SE): Metabolic Acidosis", "Biochemistry (SE): Basal Metabolic Rate (BMR)", "Biochemistry (SE): Polymerase Chain Reaction (PCR)", "Biochemistry (SE): Porphyrias",
+    "Biochemistry (SA): Oncogenes", "Biochemistry (SA): Uncouplers of Oxidative Phosphorylation", "Biochemistry (SA): Significance of HMP Pathway", "Biochemistry (SA): Tumor Markers", "Biochemistry (SA): Essential Amino Acids", "Biochemistry (SA): Endoplasmic Reticulum", "Biochemistry (SA): Creatinine Clearance Test", "Biochemistry (SA): Dietary Fiber", "Biochemistry (SA): Gout"
+];
+
+// --- State Management ---
+let allMembersData = [];
+const memberViewStates = {};
+let calendarDate = new Date();
+const timerIntervals = {};
+let currentMessengerId = localStorage.getItem('currentMessengerId') || '';
+
+// --- Utility Functions ---
+const getLocalDateString = (date) => new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+const getYearMonthString = (date) => date.toISOString().slice(0, 7);
+const TODAY_STRING = getLocalDateString(new Date());
+const formatTime = (ms) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+const getTotalTimeSpent = (goal) => (goal.totalTime || 0) + (goal.isRunning && goal.startTime ? Date.now() - goal.startTime : 0);
+const getInitials = (name) => (name || 'U').split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
+const pickColorForName = (name, saturation = 60, lightness = 50) => {
+    let hash = 0;
+    for (let i = 0; i < (name || '').length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        hash |= 0; 
+    }
+    return `hsl(${hash % 360}, ${saturation}%, ${lightness}%)`;
+};
+const groupTasksBySubject = (tasks) => {
+    return (tasks || []).reduce((acc, task) => {
+        const subject = task.subject || 'General';
+        if (!acc[subject]) acc[subject] = [];
+        acc[subject].push(task);
+        return acc;
+    }, {});
+};
+
+// --- Push Notification Functions ---
+function identifyUserInOneSignal(yourInternalUserId) {
+    if (!yourInternalUserId || !window.OneSignal) return;
+    window.OneSignal.push(() => {
+        OneSignal.setExternalUserId(yourInternalUserId);
+    });
+}
+
+// --- DOM Rendering ---
+function renderApp() {
+    renderMasterCalendar(calendarDate.getFullYear(), calendarDate.getMonth());
+    updateMembersUI(allMembersData);
+    renderSharedMonthlyView();
+    updateMessengerUserSelect();
+}
+
+function renderMasterCalendar(year, month) {
+    const tasksByDate = {};
+    allMembersData.forEach(member => {
+        Object.entries(member.dailyTasks || {}).forEach(([date, tasks]) => {
+            tasksByDate[date] = (tasksByDate[date] || 0) + tasks.length;
+        });
+    });
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const calendarHtml = `
+    <div class="flex items-center justify-between mb-4 px-2">
+      <button id="prev-month-btn" class="p-2 rounded-full hover:bg-indigo-100">&lt;</button>
+      <h2 class="text-xl font-bold text-indigo-700">${monthNames[month]} ${year}</h2>
+      <button id="next-month-btn" class="p-2 rounded-full hover:bg-indigo-100">&gt;</button>
+    </div>
+    <div class="grid grid-cols-7 gap-2 text-center text-sm font-semibold text-indigo-500 px-2">
+      <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+    </div>
+    <div class="grid grid-cols-7 gap-1 mt-2 px-2">${
+        Array(firstDay).fill('<div></div>').join('') +
+        Array.from({length: daysInMonth}, (_, i) => {
+            const day = i + 1;
+            const dateStr = getLocalDateString(new Date(year, month, day));
+            return `<div class="calendar-day cursor-pointer p-2 text-center rounded-lg 
+                ${tasksByDate[dateStr] > 0 ? 'has-tasks' : ''} 
+                ${dateStr === TODAY_STRING ? 'is-today' : ''} hover:bg-indigo-200" data-date="${dateStr}">${day}</div>`;
+        }).join('')
+    }</div>`;
+    document.getElementById('master-calendar-container').innerHTML = calendarHtml;
+}
+
+function updateMembersUI(members) {
+    const container = document.getElementById('members-container');
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('empty-state-members').style.display = members.length === 0 ? 'block' : 'none';
+    const memberIds = new Set(members.map(m => m.id));
+    Array.from(container.children).forEach(child => {
+        if (!memberIds.has(child.dataset.id)) {
+            child.classList.add('fade-out');
+            setTimeout(() => child.remove(), 400);
+        }
+    });
+    members.forEach((member, index) => {
+        let memberCard = container.querySelector(`[data-id="${member.id}"]`);
+        if (!memberCard) {
+            memberCard = createMemberCard(member);
+            memberCard.style.animationDelay = `${index * 100}ms`;
+            container.appendChild(memberCard);
+        }
+        updateMemberCard(memberCard, member);
+    });
+}
+
+function createMemberCard(member) {
+    const card = document.createElement('div');
+    card.className = 'bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-3xl shadow-lg flex flex-col fade-in';
+    card.dataset.id = member.id;
+    card.innerHTML = `
       <div class="flex justify-between items-start mb-5">
         <div class="flex items-center gap-3">
-          <div class="avatar-container w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-xl flex-shrink-0"></div>
-          <h3 class="member-name text-2xl font-extrabold text-indigo-800"></h3>
+          <div class="avatar-container w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-xl" style="background-color:${pickColorForName(member.name)}">${getInitials(member.name)}</div>
+          <h3 class="text-2xl font-extrabold text-indigo-800">${member.name}</h3>
         </div>
-        <button class="delete-member-btn text-slate-400 hover:text-red-600 p-1 rounded-full hover:bg-red-100 transition-colors" aria-label="Delete member">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        <button class="delete-member-btn text-indigo-400 hover:text-red-600 p-1" aria-label="Delete member">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
         </button>
       </div>
       <div class="flex items-center gap-3 mb-5 flex-wrap">
         <label class="font-semibold text-indigo-600">Date:</label>
-        <input type="date" class="member-date-picker p-2 border border-indigo-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500" />
+        <input type="date" class="member-date-picker p-2 border border-indigo-300 rounded-lg bg-white" />
         <button class="carry-forward-btn ml-auto bg-indigo-100 text-indigo-700 text-xs font-bold py-2 px-3 rounded-lg hover:bg-indigo-200">Carry Over ➔</button>
       </div>
       <div class="mb-5">
-        <div class="flex justify-between items-center mb-1 text-sm text-indigo-600 font-semibold">
-          <span class="progress-label">Daily Progress</span>
-          <span class="progress-count"></span>
-        </div>
-        <div class="w-full bg-slate-200 rounded-full h-3">
-          <div class="progress-bar bg-indigo-600 h-3 rounded-full"></div>
-        </div>
-        <div class="total-time-label text-xs mt-2 text-slate-500 font-medium"></div>
+        <div class="flex justify-between items-center mb-1 text-sm text-indigo-600 font-semibold"><span>Daily Progress</span><span class="progress-count"></span></div>
+        <div class="w-full bg-indigo-200 rounded-full h-3"><div class="progress-bar bg-indigo-600 h-3 rounded-full" style="width:0%;"></div></div>
+        <div class="total-time-label text-xs mt-2 text-indigo-500 font-medium"></div>
       </div>
-      <div class="goals-list flex-grow overflow-y-auto max-h-80 pr-2 space-y-2"></div>
-      <div class="mt-6 pt-5 border-t border-slate-200 space-y-3">
+      <div class="goals-list flex-grow overflow-y-auto max-h-80 pr-2"></div>
+      <div class="mt-6 pt-5 border-t space-y-3">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                  <label class="text-sm font-medium text-slate-700">Subject</label>
-                  <input type="text" class="new-goal-subject-input w-full p-2 mt-1 border border-indigo-300 rounded-xl" placeholder="Anatomy" />
-              </div>
-              <div>
-                  <label class="text-sm font-medium text-slate-700">Task Name</label>
-                  <input type="text" class="new-goal-text-input w-full p-2 mt-1 border border-indigo-300 rounded-xl" placeholder="Brachial Plexus" />
-              </div>
+              <input type="text" class="new-goal-subject-input p-3 border border-indigo-300 rounded-xl" placeholder="Subject (e.g., Anatomy)" />
+              <input type="text" class="new-goal-text-input p-3 border border-indigo-300 rounded-xl" placeholder="Task name..." />
           </div>
-          <button class="add-goal-btn w-full bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-800 disabled:opacity-50 flex items-center justify-center">Add Goal</button>
+          <textarea class="new-goal-desc-input w-full p-3 border border-indigo-300 rounded-xl text-sm" placeholder="Optional: Add more details..."></textarea>
+          <button class="add-goal-btn w-full bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-800">Add Goal</button>
       </div>
-    </div>
-</template>
+      `;
+    return card;
+}
 
-<script type="module">
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-import { 
-    getFirestore, collection, doc, addDoc, onSnapshot, 
-    deleteDoc, runTransaction, serverTimestamp, query, orderBy 
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-// =============================================================
-// YOUR FIREBASE CONFIGURATION
-// =============================================================
-const firebaseConfig = {
-  apiKey: "AIzaSyC8zXcbDNwdm2LMbpzV1KkN3wiTyh_vZ3M",
-  authDomain: "o-study-f5081.firebaseapp.com",
-  projectId: "o-study-f5081",
-  storageBucket: "o-study-f5081.appspot.com", // Note: I corrected this from .firebasestorage.app
-  messagingSenderId: "338420264881",
-  appId: "1:338420264881:web:c4119859174ab264709790",
-  measurementId: "G-8HCPGJ13MH"
-};
-
-// =============================================================
-// INITIALIZE FIREBASE AND GET SERVICES
-// =============================================================
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const analytics = getAnalytics(app); // Initialize Analytics as requested
-
-// =============================================================
-// CONSTANTS & STATE
-// =============================================================
-const membersContainer = document.getElementById('members-container');
-const memberTemplate = document.getElementById('member-card-template');
-const userSelector = document.getElementById('current-user-select');
-
-// This holds the client-side state, like which date is selected for each member.
-const memberViewStates = {};
-let allMembersData = [];
-let currentUser = { id: null, name: null };
-
-// =============================================================
-// UTILITY FUNCTIONS
-// =============================================================
-const getInitials = (name) => {
-    if (!name) return '';
-    const names = name.split(' ');
-    let initials = names[0].substring(0, 1).toUpperCase();
-    if (names.length > 1) {
-        initials += names[names.length - 1].substring(0, 1).toUpperCase();
-    }
-    return initials;
-};
-
-const COLORS = ['#ef4444', '#f97316', '#84cc16', '#10b981', '#06b6d4', '#6366f1', '#a855f7', '#ec4899'];
-const pickColorForName = (name) => {
-    if (!name) return COLORS[0];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-        hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return COLORS[Math.abs(hash) % COLORS.length];
-};
-
-const formatTime = (seconds) => {
-    if (seconds < 60) return `${seconds}s`;
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    if (remainingSeconds === 0) return `${minutes}m`;
-    return `${minutes}m ${remainingSeconds}s`;
-};
-
-// =============================================================
-// DOM UPDATE AND RENDERING LOGIC (Your "Turbo" functions)
-// =============================================================
-
-function renderOrUpdateMemberCard(member) {
-    let card = membersContainer.querySelector(`[data-member-id="${member.id}"]`);
-    
-    if (!card) {
-        card = memberTemplate.content.firstElementChild.cloneNode(true);
-        card.dataset.memberId = member.id;
-        card.classList.add('fade-in');
-        membersContainer.appendChild(card);
-    }
-    
-    card.querySelector('.member-name').textContent = member.name;
-    const avatar = card.querySelector('.avatar-container');
-    avatar.style.backgroundColor = pickColorForName(member.name);
-    avatar.textContent = getInitials(member.name);
-    
-    if (!memberViewStates[member.id]) {
-        const today = new Date().toISOString().split('T')[0];
-        memberViewStates[member.id] = { date: today };
-    }
-    card.querySelector('.member-date-picker').value = memberViewStates[member.id].date;
-
-    renderDailyView(card, member, memberViewStates[member.id].date);
+function updateMemberCard(card, member) {
+    if (!memberViewStates[member.id]) memberViewStates[member.id] = { date: TODAY_STRING };
+    const state = memberViewStates[member.id];
+    renderDailyView(card, member, state.date);
 }
 
 function renderDailyView(card, member, date) {
+    card.querySelector('.member-date-picker').value = date;
     const goalsForDate = member.dailyTasks?.[date] || [];
     const completedTasks = goalsForDate.filter(g => g.completed).length;
-    
+    const totalTime = goalsForDate.reduce((acc, goal) => acc + getTotalTimeSpent(goal), 0);
     card.querySelector('.progress-count').textContent = `${completedTasks} / ${goalsForDate.length} Goals`;
     card.querySelector('.progress-bar').style.width = goalsForDate.length > 0 ? `${(completedTasks / goalsForDate.length) * 100}%` : '0%';
-    
-    const totalTime = 0; // Placeholder for time tracking
     card.querySelector('.total-time-label').textContent = `Total time today: ${formatTime(totalTime)}`;
-    
-    renderOrUpdateGoalsList(card.querySelector('.goals-list'), member.id, date, goalsForDate);
+    renderGoalsForMember(card.querySelector('.goals-list'), member.id, date, goalsForDate);
 }
 
-function createGoalItemHTML(goal, memberId, date) {
-    const isCompleteClass = goal.completed ? 'is-complete' : '';
-    const subjectTag = goal.subject ? `<span class="subject-tag bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-1 rounded-full">${goal.subject}</span>` : '';
-
-    return `
-        <div class="goal-item flex items-start gap-3 p-3 border rounded-xl shadow-sm ${isCompleteClass}" data-goal-id="${goal.id}" data-goal-date="${date}">
-            <input type="checkbox" class="goal-checkbox mt-1 h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" ${goal.completed ? 'checked' : ''}>
-            <div class="flex-grow">
-                <p class="goal-text font-semibold text-slate-800">${goal.text}</p>
-            </div>
-            ${subjectTag}
-            <button class="delete-goal-btn ml-auto text-slate-400 hover:text-red-500 p-1" aria-label="Delete goal">&times;</button>
-        </div>
-    `;
-}
-
-function renderOrUpdateGoalsList(listContainer, memberId, date, goals) {
-    const sortedGoals = [...goals].sort((a, b) => a.completed - b.completed || a.text.localeCompare(b.text));
-    
-    const existingGoalElements = new Map(
-        [...listContainer.querySelectorAll('.goal-item')].map(el => [el.dataset.goalId, el])
-    );
-    
-    const goalIdsInNewData = new Set(sortedGoals.map(g => g.id));
-
-    // Remove goals that are no longer in the data
-    existingGoalElements.forEach((el, id) => {
-        if (!goalIdsInNewData.has(id)) {
-            el.classList.add('fade-out-fast');
-            setTimeout(() => el.remove(), 300);
-        }
-    });
-
-    // Add or update goals
-    sortedGoals.forEach(goal => {
-        let goalEl = existingGoalElements.get(goal.id);
-        
-        if (goalEl) {
-            // Update existing element efficiently
-            goalEl.querySelector('.goal-text').textContent = goal.text;
-            goalEl.querySelector('.goal-checkbox').checked = goal.completed;
-            goalEl.classList.toggle('is-complete', goal.completed);
-        } else {
-            // Create new element if it doesn't exist
-            const goalHtml = createGoalItemHTML(goal, memberId, date);
-            listContainer.insertAdjacentHTML('beforeend', goalHtml);
-            const newEl = listContainer.lastElementChild;
-            if(newEl) newEl.classList.add('fade-in');
-        }
-    });
-}
-
-function removeMemberCard(memberId) {
-    const card = membersContainer.querySelector(`[data-member-id="${memberId}"]`);
-    if (card) {
-        card.classList.add('fade-out-fast');
-        setTimeout(() => card.remove(), 300);
+function renderSharedMonthlyView() {
+    const container = document.getElementById('monthly-goals-container');
+    const listElement = container.querySelector('.monthly-goals-list');
+    const scrollPosition = listElement ? listElement.scrollTop : 0;
+    if (allMembersData.length === 0) {
+        container.innerHTML = '<h2 class="text-2xl font-semibold text-purple-700">Group Monthly Goals</h2><p class="text-purple-400 text-center mt-4">Add a member to get started with monthly goals.</p>'; return;
     }
+    const monthStr = getYearMonthString(calendarDate);
+    const sourceMember = allMembersData[0]; // Use first member as the source of truth for the list
+    const monthlyTasks = sourceMember.monthlyTasks?.[monthStr] || [];
+    let html = `<div class="flex justify-between items-center mb-5"><h2 class="text-2xl font-semibold text-purple-700">Group Monthly Goals (${new Date(monthStr+'-02').toLocaleString('default', { month: 'long' })})</h2></div><div class="space-y-4 mb-6">`;
+    allMembersData.forEach(member => {
+        const memberMonthlyTasks = member.monthlyTasks?.[monthStr] || [];
+        const completedCount = memberMonthlyTasks.filter(task => task.completedBy?.[member.id]).length;
+        const progress = monthlyTasks.length > 0 ? (completedCount / monthlyTasks.length) * 100 : 0;
+        html += `
+            <div>
+                <div class="flex justify-between items-center mb-1 text-sm text-purple-600 font-semibold"><span>${member.name}</span><span>${completedCount} / ${monthlyTasks.length}</span></div>
+                <div class="w-full bg-purple-200 rounded-full h-2.5"><div class="bg-purple-600 h-2.5 rounded-full" style="width: ${progress}%;"></div></div>
+            </div>`;
+    });
+    html += `</div>`;
+    if (monthlyTasks.length === 0) {
+        html += '<p class="text-purple-400 p-4 text-center">No monthly goals set for this month.</p>';
+    } else {
+        const groupedTasks = groupTasksBySubject(monthlyTasks);
+        html += `<div class="monthly-goals-list flex-grow overflow-y-auto max-h-96 pr-2">`;
+        Object.keys(groupedTasks).sort().forEach(subject => {
+            html += `<h3 class="subject-header" style="color:#5b21b6; border-color:#ddd6fe;">${subject}</h3>`;
+            html += groupedTasks[subject].map(task => `
+                <div class="goal-item p-3 rounded-xl hover:bg-purple-50 group" data-task-id="${task.id}">
+                    <div class="flex items-start">
+                        <div class="flex-grow">
+                            <p class="font-semibold text-purple-800">
+                                <span class="subject-tag" style="background-color: ${pickColorForName(task.subject || 'General', 50, 45)};">${task.subject || 'General'}</span>
+                                ${task.text}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2 ml-2">
+                           ${task.description ? `<button class="description-toggle-btn" title="Show description">ⓘ</button>` : ''}
+                           <button class="copy-to-daily-btn text-purple-400 hover:text-purple-600" title="Copy to my Daily Tasks">
+                               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zM8 5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 8 5zm-1.5 2.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5z"/></svg>
+                           </button>
+                           <button class="delete-goal-btn text-purple-400 hover:text-red-500" title="Delete Monthly Goal">X</button>
+                        </div>
+                    </div>
+                    ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2 mt-3 text-sm">
+                        ${allMembersData.map(m => {
+                            const memberTask = (m.monthlyTasks?.[monthStr] || []).find(t => t.id === task.id);
+                            const isChecked = memberTask?.completedBy?.[m.id] || false;
+                            return `
+                            <label class="flex items-center gap-2 cursor-pointer p-1">
+                                <input type="checkbox" class="monthly-goal-checkbox h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500" data-member-id="${m.id}" ${isChecked ? 'checked' : ''}>
+                                <span class="text-slate-700">${m.name.split(' ')[0]}</span>
+                            </label>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('');
+        });
+        html += `</div>`;
+    }
+    html += `
+        <div class="mt-6 pt-5 border-t space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input type="text" id="new-monthly-goal-subject" class="flex-grow p-3 border border-purple-300 rounded-xl" placeholder="Subject (e.g., Anatomy)" />
+                <input type="text" id="new-monthly-goal-text" class="flex-grow p-3 border border-purple-300 rounded-xl" placeholder="New group goal..." />
+            </div>
+            <textarea id="new-monthly-goal-desc" class="w-full p-3 border border-purple-300 rounded-xl text-sm" placeholder="Optional: Add description..."></textarea>
+            <button id="add-monthly-goal-btn" class="w-full bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl hover:bg-purple-800">Add Goal</button>
+        </div>`;
+    container.innerHTML = html;
+    const newListElement = container.querySelector('.monthly-goals-list');
+    if (newListElement) newListElement.scrollTop = scrollPosition;
 }
 
-function updateUserSelector() {
-    const select = document.getElementById('current-user-select');
-    select.innerHTML = ''; // Clear existing options
-    allMembersData.forEach(member => {
-        const option = document.createElement('option');
-        option.value = member.id;
-        option.textContent = member.name;
-        if (currentUser.id === member.id) {
-            option.selected = true;
-        }
-        select.appendChild(option);
+function renderGoalsForMember(listContainer, memberId, date, goals) {
+    if (goals.length === 0) {
+        listContainer.innerHTML = '<p class="text-indigo-400 p-4 text-center">No goals for this day. Add one below!</p>'; return;
+    }
+    const groupedTasks = groupTasksBySubject(goals.sort((a, b) => a.completed - b.completed));
+    let html = '';
+    Object.keys(groupedTasks).sort().forEach(subject => {
+        html += `<h3 class="subject-header">${subject}</h3>`;
+        html += groupedTasks[subject].map(goal => `
+            <div class="goal-item p-3 rounded-xl hover:bg-indigo-100 group ${goal.isRunning ? 'timer-running bg-green-50' : ''}" data-goal-id="${goal.id}" data-goal-date="${date}">
+                <div class="flex items-start">
+                    <input type="checkbox" class="goal-checkbox h-5 w-5 mt-1 rounded text-indigo-600" ${goal.completed ? 'checked' : ''} ${goal.isRunning ? 'disabled' : ''} />
+                    <div class="ml-3 flex-grow">
+                        <p class="${goal.completed ? 'line-through text-indigo-400' : ''}">
+                            <span class="subject-tag" style="background-color: ${pickColorForName(goal.subject || 'General', 60, 50)};">${goal.subject || 'General'}</span>
+                            ${goal.text}
+                        </p>
+                        <div class="text-xs text-indigo-500 timer-display ${goal.isRunning ? 'text-green-600' : ''}">${formatTime(getTotalTimeSpent(goal))}</div>
+                    </div>
+                    <div class="flex items-center gap-2 ml-3">
+                        ${goal.description ? `<button class="description-toggle-btn" title="Show description">ⓘ</button>` : ''}
+                        ${!goal.completed ? (goal.isRunning
+                            ? `<button class="stop-btn timer-control-btn" data-action="stop">■</button>`
+                            : `<button class="play-btn timer-control-btn" data-action="start">▶</button>`
+                        ) : ''}
+                        <button class="delete-goal-btn text-indigo-400 hover:text-red-500" title="Delete Goal">X</button>
+                    </div>
+                </div>
+                ${goal.description ? `<div class="task-description">${goal.description}</div>` : ''}
+            </div>
+        `).join('');
     });
-    
-    const userSelectorSection = document.getElementById('user-selector-section');
-    userSelectorSection.classList.toggle('hidden', allMembersData.length <= 1);
+    listContainer.innerHTML = html;
+    goals.forEach(g => { if (g.isRunning) startTimerDisplay(memberId, date, g.id); });
 }
 
 function renderMessages(messages) {
     const container = document.getElementById('messages-container');
-    container.innerHTML = '';
-    messages.forEach(msg => {
-        const sender = allMembersData.find(m => m.id === msg.senderId);
-        const senderName = sender ? sender.name : 'Unknown';
-        const isCurrentUser = msg.senderId === currentUser.id;
-
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('p-3', 'rounded-lg', 'max-w-xs', 'sm:max-w-md', 'fade-in');
-        
-        if (isCurrentUser) {
-            messageDiv.classList.add('bg-indigo-500', 'text-white', 'self-end');
-        } else {
-            messageDiv.classList.add('bg-slate-200', 'text-slate-800', 'self-start');
-        }
-
-        messageDiv.innerHTML = `
-            ${!isCurrentUser ? `<p class="text-xs font-bold text-indigo-600 mb-1">${senderName}</p>` : ''}
-            <p>${msg.text}</p>
-        `;
-        container.appendChild(messageDiv);
-    });
+    container.innerHTML = messages.map(msg => {
+        const msgData = msg.data();
+        const isSent = msgData.senderId === currentMessengerId;
+        const linkRegex = /(https?:\/\/\S+)/g;
+        const textWithLinks = (msgData.text || '').replace(linkRegex, `<a href="$1" target="_blank" class="link-bubble">$1</a>`);
+        return `
+        <div class="message flex flex-col ${isSent ? 'sent' : 'received'} fade-in" data-id="${msg.id}">
+            <span class="font-bold text-sm text-indigo-700">${msgData.senderName}</span>
+            <p class="text-slate-800 break-words">${textWithLinks}</p>
+            <span class="text-xs text-slate-500 mt-1 self-end">${msgData.createdAt ? new Date(msgData.createdAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+        </div>`;
+    }).join('');
     container.scrollTop = container.scrollHeight;
 }
 
-
-// =============================================================
-// EVENT HANDLERS & FIRESTORE LOGIC
-// =============================================================
-async function handleAddMember() {
-    const input = document.getElementById('new-member-name-input');
-    const button = document.getElementById('add-member-btn');
-    const name = input.value.trim();
-    if (!name) return;
-
-    button.disabled = true;
-    button.textContent = 'Adding...';
-
-    try {
-        await addDoc(collection(db, "members"), {
-            name: name,
-            dailyTasks: {}
-        });
-        input.value = '';
-    } catch (error) {
-        console.error("Error adding member: ", error);
-        alert("Could not add member. Please try again.");
-    } finally {
-        button.disabled = false;
-        button.textContent = 'Add Me';
-    }
+function updateMessengerUserSelect() {
+    const select = document.getElementById('messenger-user-select');
+    select.innerHTML = '<option value="">-- Select your name --</option>' + allMembersData.map(member =>
+        `<option value="${member.id}" ${member.id === currentMessengerId ? 'selected' : ''}>${member.name}</option>`
+    ).join('');
 }
 
-async function handleAddGoal(e) {
-    const button = e.target.closest('.add-goal-btn');
-    const card = button.closest('[data-member-id]');
-    const memberId = card.dataset.memberId;
-    const date = card.querySelector('.member-date-picker').value;
+// --- Data Seeding ---
+async function seedInitialMonthlyTasks() {
+    const monthStr = getYearMonthString(new Date());
+    const seedFlag = `tasksSeeded_v3_${monthStr}`;
+    if (localStorage.getItem(seedFlag) || allMembersData.length === 0) return;
+    const firstMemberDoc = await getDoc(doc(db, "members", allMembersData[0].id));
+    if (firstMemberDoc.exists() && firstMemberDoc.data().monthlyTasks?.[monthStr]?.length > 0) {
+        localStorage.setItem(seedFlag, 'true'); return;
+    }
+    console.log("Seeding initial monthly tasks for", monthStr);
+    const newTasks = INITIAL_MONTHLY_TASKS.map(fullText => {
+        const match = fullText.match(/^(.*?)\s\((.*?)\):\s(.*)$/);
+        const subject = match ? match[1].trim() : 'General';
+        const text = match ? `(${match[2].trim()}) ${match[3].trim()}` : fullText;
+        return { id: crypto.randomUUID(), subject, text, description: '', completedBy: {} };
+    });
+    try {
+        const batch = writeBatch(db);
+        allMembersData.forEach(member => {
+            const ref = doc(db, "members", member.id);
+            batch.update(ref, { [`monthlyTasks.${monthStr}`]: newTasks });
+        });
+        await batch.commit();
+        localStorage.setItem(seedFlag, 'true');
+        console.log("Successfully seeded tasks.");
+    } catch (error) { console.error("Failed to seed tasks:", error); }
+}
 
-    const subjectInput = card.querySelector('.new-goal-subject-input');
-    const textInput = card.querySelector('.new-goal-text-input');
-    
-    const subject = subjectInput.value.trim();
+// --- Event Handlers & Logic ---
+async function handleMemberEvents(e) {
+  const memberCard = e.target.closest('[data-id]');
+  if (!memberCard) return;
+  const memberId = memberCard.dataset.id;
+  const memberDocRef = doc(db, 'members', memberId);
+  if (e.target.matches('.member-date-picker')) {
+    memberViewStates[memberId].date = e.target.value;
+    updateMemberCard(memberCard, allMembersData.find(m => m.id === memberId));
+    return;
+  }
+  if (e.target.closest('.delete-member-btn')) {
+    if (confirm('Are you sure you want to delete this member?')) await deleteDoc(memberDocRef);
+    return;
+  }
+  if (e.target.matches('.add-goal-btn')) {
+    const subjectInput = memberCard.querySelector('.new-goal-subject-input');
+    const textInput = memberCard.querySelector('.new-goal-text-input');
+    const descInput = memberCard.querySelector('.new-goal-desc-input');
     const text = textInput.value.trim();
+    const date = memberViewStates[memberId].date;
+    if (text && date) {
+      const newGoal = { id: crypto.randomUUID(), subject: subjectInput.value.trim(), text, description: descInput.value.trim(), completed: false, totalTime: 0, isRunning: false, startTime: null };
+      await updateDoc(memberDocRef, { [`dailyTasks.${date}`]: arrayUnion(newGoal) });
+      subjectInput.value = ''; textInput.value = ''; descInput.value = '';
+    }
+    return;
+  }
+  if (e.target.matches('.carry-forward-btn')) {
+      const dateStr = memberViewStates[memberId].date;
+      const member = allMembersData.find(m => m.id === memberId);
+      const incompleteTasks = (member.dailyTasks?.[dateStr] || []).filter(t => !t.completed);
+      if (incompleteTasks.length === 0) { alert('No incomplete tasks to carry over!'); return; }
+      const currentDate = new Date(`${dateStr}T12:00:00.000Z`);
+      currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+      const nextDateStr = currentDate.toISOString().split('T')[0];
+      const tasksToCarry = incompleteTasks.map(t => ({...t, id: crypto.randomUUID(), completed: false, totalTime: 0, isRunning: false, startTime: null}));
+      await updateDoc(memberDocRef, { [`dailyTasks.${nextDateStr}`]: arrayUnion(...tasksToCarry) });
+      alert(`Carried over ${tasksToCarry.length} task(s) to ${nextDateStr}.`);
+      return;
+  }
+  const goalItem = e.target.closest('.goal-item');
+  if (!goalItem) return;
+  const { goalId, goalDate } = goalItem.dataset;
+  if (e.target.closest('.description-toggle-btn')) {
+      const descEl = goalItem.querySelector('.task-description');
+      if(descEl) descEl.classList.toggle('is-visible');
+      return;
+  }
+  if (!goalId || !goalDate) return;
+  if (e.target.closest('.timer-control-btn')) {
+    const action = e.target.closest('.timer-control-btn').dataset.action;
+    await handleTimerAction(memberDocRef, goalDate, goalId, action);
+    return;
+  }
+  try {
+    await runTransaction(db, async (transaction) => {
+      const targetDoc = await transaction.get(memberDocRef);
+      if (!targetDoc.exists()) throw "Document does not exist!";
+      const tasks = targetDoc.data().dailyTasks || {};
+      if (e.target.closest('.delete-goal-btn')) {
+        tasks[goalDate] = (tasks[goalDate] || []).filter(g => g.id !== goalId);
+        stopTimerDisplay(memberId, goalId);
+      } else if (e.target.matches('.goal-checkbox')) {
+        tasks[goalDate] = (tasks[goalDate] || []).map(g => g.id === goalId ? { ...g, completed: e.target.checked } : g);
+      }
+      transaction.update(memberDocRef, { dailyTasks: tasks });
+    });
+  } catch (error) { console.error("Goal update failed: ", error); }
+}
 
-    if (!text) {
-        alert("Task name cannot be empty.");
+async function updateAllMembersMonthlyTasks(monthStr, updateFn) {
+    if (allMembersData.length === 0) return;
+    const sourceTasks = allMembersData[0]?.monthlyTasks?.[monthStr] || [];
+    const updatedTasks = updateFn(sourceTasks);
+    const batch = writeBatch(db);
+    allMembersData.forEach(member => {
+        const ref = doc(db, "members", member.id);
+        batch.update(ref, { [`monthlyTasks.${monthStr}`]: updatedTasks });
+    });
+    await batch.commit();
+}
+
+async function handleSharedMonthlyEvents(e) {
+  const monthStr = getYearMonthString(calendarDate);
+
+  if (e.target.matches('#add-monthly-goal-btn')) {
+    const subjectInput = document.getElementById('new-monthly-goal-subject');
+    const textInput = document.getElementById('new-monthly-goal-text');
+    const descInput = document.getElementById('new-monthly-goal-desc');
+    const text = textInput.value.trim();
+    if (!text || allMembersData.length === 0) return;
+    const newMonthlyTask = { id: crypto.randomUUID(), subject: subjectInput.value.trim(), text, description: descInput.value.trim(), completedBy: {} };
+    await updateAllMembersMonthlyTasks(monthStr, (tasks) => [...tasks, newMonthlyTask]);
+    subjectInput.value = ''; textInput.value = ''; descInput.value = '';
+    return;
+  }
+
+  const goalItem = e.target.closest('.goal-item');
+  if (!goalItem) return;
+  if (e.target.closest('.description-toggle-btn')) {
+      const descEl = goalItem.querySelector('.task-description');
+      if(descEl) descEl.classList.toggle('is-visible');
+      return;
+  }
+  
+  const taskId = goalItem.dataset.taskId;
+
+  if (e.target.matches('.monthly-goal-checkbox')) {
+      const targetMemberId = e.target.dataset.memberId;
+      const isChecked = e.target.checked;
+      await updateAllMembersMonthlyTasks(monthStr, (tasks) => 
+        tasks.map(task => task.id === taskId ? { ...task, completedBy: { ...task.completedBy, [targetMemberId]: isChecked } } : task)
+      );
+      return;
+  }
+  
+  // =============================================================
+  // CORRECTED LOGIC FOR COPY-TO-DAILY-BTN STARTS HERE
+  // =============================================================
+  if (e.target.closest('.copy-to-daily-btn')) {
+    if (!currentMessengerId) {
+        alert("Please select your name from the 'I am:' dropdown in the messenger first.");
         return;
     }
 
-    button.disabled = true;
-    button.textContent = '...';
+    const memberToUpdate = allMembersData.find(m => m.id === currentMessengerId);
+    if (!memberToUpdate) return;
+    
+    // Find the source task from the current user's own data, not just the first user. This is more robust.
+    const sourceTask = memberToUpdate.monthlyTasks?.[monthStr]?.find(t => t.id === taskId);
+    if (!sourceTask) {
+        console.error("Could not find the source monthly task to copy.");
+        alert("An error occurred. Could not find the task to copy.");
+        return;
+    }
 
-    const newGoal = {
-        id: doc(collection(db, 'dummy')).id, // Generate a unique ID locally
-        text: text,
-        subject: subject,
-        completed: false,
-        createdAt: new Date().toISOString()
-    };
+    const memberDocRef = doc(db, 'members', currentMessengerId);
+    const dateForDailyTask = memberViewStates[currentMessengerId]?.date || TODAY_STRING;
 
     try {
+        // Use a transaction to safely read and then write to a single member's document.
+        // This makes adding the daily task AND updating their monthly task an atomic operation.
         await runTransaction(db, async (transaction) => {
-            const memberDocRef = doc(db, "members", memberId);
             const memberDoc = await transaction.get(memberDocRef);
-            if (!memberDoc.exists()) throw "Document does not exist!";
+            if (!memberDoc.exists()) throw "Member document not found!";
 
             const data = memberDoc.data();
-            const newDailyTasks = { ...data.dailyTasks };
-            const tasksForDate = newDailyTasks[date] || [];
-            tasksForDate.push(newGoal);
-            newDailyTasks[date] = tasksForDate;
+            
+            // 1. Prepare the new daily goal
+            const newDailyGoal = {
+                id: crypto.randomUUID(),
+                subject: sourceTask.subject,
+                text: sourceTask.text,
+                description: sourceTask.description,
+                completed: false, totalTime: 0, isRunning: false, startTime: null
+            };
+            
+            const updatedDailyTasks = data.dailyTasks || {};
+            const dailyTasksForDate = updatedDailyTasks[dateForDailyTask] || [];
+            dailyTasksForDate.push(newDailyGoal);
+            updatedDailyTasks[dateForDailyTask] = dailyTasksForDate;
 
-            transaction.update(memberDocRef, { dailyTasks: newDailyTasks });
+            // 2. Prepare the updated monthly tasks for this user
+            const updatedMonthlyTasks = { ...data.monthlyTasks };
+            const tasksForMonth = (updatedMonthlyTasks[monthStr] || []).map(task => {
+                if (task.id === taskId) {
+                    const updatedCompletedBy = { ...task.completedBy, [currentMessengerId]: true };
+                    return { ...task, completedBy: updatedCompletedBy };
+                }
+                return task;
+            });
+            updatedMonthlyTasks[monthStr] = tasksForMonth;
+
+            // 3. Atomically update both fields for the current user.
+            transaction.update(memberDocRef, {
+                dailyTasks: updatedDailyTasks,
+                monthlyTasks: updatedMonthlyTasks
+            });
         });
-        subjectInput.value = '';
-        textInput.value = '';
+
+        // After the transaction is successful, sync the 'completed' status to all OTHER members.
+        const batch = writeBatch(db);
+        allMembersData.forEach(member => {
+            if (member.id !== currentMessengerId) { // Only update others
+                const otherMemberRef = doc(db, 'members', member.id);
+                const updatedTasksForOtherMember = (member.monthlyTasks?.[monthStr] || []).map(task => {
+                     if (task.id === taskId) {
+                        const updatedCompletedBy = { ...task.completedBy, [currentMessengerId]: true };
+                        return { ...task, completedBy: updatedCompletedBy };
+                    }
+                    return task;
+                });
+                batch.update(otherMemberRef, { [`monthlyTasks.${monthStr}`]: updatedTasksForOtherMember });
+            }
+        });
+        await batch.commit();
+
+        alert(`'${sourceTask.text}' added to your daily goals for ${dateForDailyTask} and marked as complete!`);
+
     } catch (error) {
-        console.error("Error adding goal:", error);
-        alert("Failed to add goal.");
-    } finally {
-        button.disabled = false;
-        button.textContent = 'Add Goal';
+        console.error("Error copying monthly task to daily:", error);
+        alert("Failed to copy the task. Please try again.");
     }
+    return;
+  }
+  // =============================================================
+  // CORRECTED LOGIC FOR COPY-TO-DAILY-BTN ENDS HERE
+  // =============================================================
+
+  if (e.target.closest('.delete-goal-btn')) {
+      if (!confirm("Are you sure you want to delete this group goal for everyone?")) return;
+      await updateAllMembersMonthlyTasks(monthStr, (tasks) => tasks.filter(t => t.id !== taskId));
+      return;
+  }
 }
 
-async function handleDeleteMember(memberId) {
-    if (confirm("Are you sure you want to remove this member?")) {
-        try {
-            await deleteDoc(doc(db, "members", memberId));
-        } catch (error) {
-            console.error("Error removing member: ", error);
-            alert("Could not remove member.");
+async function handleTimerAction(memberDocRef, date, goalId, action) {
+  await runTransaction(db, async (transaction) => {
+    const memberDoc = await transaction.get(memberDocRef);
+    if (!memberDoc.exists()) return;
+    const data = memberDoc.data();
+    const tasks = data.dailyTasks || {};
+    let goalsForDate = tasks[date] || [];
+    const now = Date.now();
+    
+    // Stop any currently running timer for this member on this date
+    goalsForDate = goalsForDate.map(g => {
+        if (g.isRunning) {
+            return { ...g, isRunning: false, totalTime: getTotalTimeSpent(g), startTime: null };
         }
+        return g;
+    });
+
+    // Start the new timer if the action is 'start'
+    if (action === 'start') {
+        goalsForDate = goalsForDate.map(g => g.id === goalId ? { ...g, isRunning: true, startTime: now } : g);
+    }
+    
+    tasks[date] = goalsForDate;
+    transaction.update(memberDocRef, { dailyTasks: tasks });
+  });
+}
+
+// --- Timer Display Management ---
+function startTimerDisplay(memberId, date, goalId) {
+    const intervalKey = `${memberId}-${goalId}`;
+    if (timerIntervals[intervalKey]) return;
+    timerIntervals[intervalKey] = setInterval(() => {
+        const member = allMembersData.find(m => m.id === memberId);
+        if (!member) { stopTimerDisplay(memberId, goalId); return; }
+        const goal = member.dailyTasks?.[date]?.find(g => g.id === goalId);
+        if (!goal || !goal.isRunning) { stopTimerDisplay(memberId, goalId); return; }
+        const goalEl = document.querySelector(`[data-id="${memberId}"] [data-goal-id="${goalId}"]`);
+        if (goalEl) {
+            goalEl.querySelector('.timer-display').textContent = formatTime(getTotalTimeSpent(goal));
+        }
+    }, 1000);
+}
+
+function stopTimerDisplay(memberId, goalId) {
+    const intervalKey = `${memberId}-${goalId}`;
+    if (timerIntervals[intervalKey]) {
+        clearInterval(timerIntervals[intervalKey]);
+        delete timerIntervals[intervalKey];
     }
 }
 
-async function handleDeleteGoal(memberId, goalDate, goalId) {
-    try {
-        await runTransaction(db, async (transaction) => {
-            const memberDocRef = doc(db, 'members', memberId);
-            const memberDoc = await transaction.get(memberDocRef);
-            if (!memberDoc.exists()) throw "Document does not exist!";
-            
-            const tasks = memberDoc.data().dailyTasks || {};
-            if (tasks[goalDate]) {
-                tasks[goalDate] = tasks[goalDate].filter(g => g.id !== goalId);
-                transaction.update(memberDocRef, { dailyTasks: tasks });
-            }
-        });
-    } catch (error) {
-        console.error("Error deleting goal:", error);
-        alert("Couldn't delete goal. Please try again.");
+// --- Initializer ---
+function setupEventHandlers() {
+  document.getElementById('add-member-btn').addEventListener('click', async () => {
+    const input = document.getElementById('new-member-name-input');
+    const name = input.value.trim();
+    if (!name) return;
+    await addDoc(collection(db, 'members'), {
+      name, dailyTasks: {}, monthlyTasks: {}, createdAt: serverTimestamp()
+    });
+    input.value = '';
+  });
+
+  document.getElementById('master-calendar-container').addEventListener('click', (e) => {
+    let needsFullRender = false;
+    if (e.target.closest('#prev-month-btn')) {
+        calendarDate.setMonth(calendarDate.getMonth() - 1);
+        needsFullRender = true;
+    } else if (e.target.closest('#next-month-btn')) {
+        calendarDate.setMonth(calendarDate.getMonth() + 1);
+        needsFullRender = true;
+    } else if (e.target.closest('.calendar-day')) {
+      const newDate = e.target.closest('.calendar-day').dataset.date;
+      allMembersData.forEach(member => {
+          if (!memberViewStates[member.id]) memberViewStates[member.id] = {};
+          memberViewStates[member.id].date = newDate;
+      });
+      updateMembersUI(allMembersData);
     }
-}
+    if (needsFullRender) renderApp();
+  });
 
-async function handleGoalCheckboxChange(e, memberId, goalDate, goalId) {
-    const checkbox = e.target;
-    const isChecked = checkbox.checked;
-    const goalItem = checkbox.closest('.goal-item');
+  document.getElementById('members-container').addEventListener('click', handleMemberEvents);
+  document.getElementById('members-container').addEventListener('change', handleMemberEvents);
+  document.getElementById('monthly-goals-container').addEventListener('click', handleSharedMonthlyEvents);
+  document.getElementById('monthly-goals-container').addEventListener('change', handleSharedMonthlyEvents);
+  document.getElementById('messenger-user-select').addEventListener('change', (e) => {
+      currentMessengerId = e.target.value;
+      localStorage.setItem('currentMessengerId', currentMessengerId);
+      renderSharedMonthlyView();
+      identifyUserInOneSignal(currentMessengerId);
+  });
 
-    goalItem.classList.toggle('is-complete', isChecked);
-    checkbox.disabled = true;
-
-    try {
-        await runTransaction(db, async (transaction) => {
-            const memberDocRef = doc(db, 'members', memberId);
-            const targetDoc = await transaction.get(memberDocRef);
-            if (!targetDoc.exists()) throw "Document does not exist!";
-            
-            const tasks = targetDoc.data().dailyTasks || {};
-            if (tasks[goalDate]) {
-                tasks[goalDate] = tasks[goalDate].map(g => g.id === goalId ? { ...g, completed: isChecked } : g);
-                transaction.update(memberDocRef, { dailyTasks: tasks });
-            }
-        });
-    } catch (error) {
-        console.error("Optimistic update failed:", error);
-        goalItem.classList.toggle('is-complete', !isChecked);
-        checkbox.checked = !isChecked;
-        alert("Couldn't save your change. Please try again.");
-    } finally {
-        checkbox.disabled = false;
-    }
-}
-
-async function handleSendMessage() {
+  const sendMessage = async () => {
     const input = document.getElementById('message-input');
-    const button = document.getElementById('send-message-btn');
     const text = input.value.trim();
-
-    if (!text || !currentUser.id) return;
-
-    button.disabled = true;
-    try {
-        await addDoc(collection(db, "messages"), {
-            text: text,
-            senderId: currentUser.id,
-            timestamp: serverTimestamp()
-        });
-        input.value = '';
-    } catch (error) {
-        console.error("Error sending message: ", error);
-    } finally {
-        button.disabled = false;
-    }
+    if (!currentMessengerId) { alert("Please select your name from the 'I am:' dropdown to send a message."); return; }
+    if (!text) return;
+    const sender = allMembersData.find(m => m.id === currentMessengerId);
+    if (!sender) return;
+    await addDoc(collection(db, 'messages'), { text, senderId: currentMessengerId, senderName: sender.name, createdAt: serverTimestamp() });
+    input.value = '';
+  };
+  document.getElementById('send-message-btn').addEventListener('click', sendMessage);
+  document.getElementById('message-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 }
 
-// =============================================================
-// MAIN APP LOGIC & EVENT LISTENERS SETUP
-// =============================================================
+function setupFirestoreListeners() {
+  onSnapshot(query(collection(db, 'members'), orderBy('name', 'asc')), (snapshot) => {
+    allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    seedInitialMonthlyTasks();
+    renderApp();
+    if (currentMessengerId) identifyUserInOneSignal(currentMessengerId);
+  });
+  onSnapshot(query(collection(db, 'messages'), orderBy('createdAt', 'asc')), (snapshot) => renderMessages(snapshot.docs));
+}
+
 function main() {
-    document.getElementById('app-content').classList.remove('hidden');
-    document.getElementById('loader').classList.add('hidden');
-    
-    document.getElementById('add-member-btn').addEventListener('click', handleAddMember);
-    document.getElementById('new-member-name-input').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') handleAddMember();
-    });
-
-    document.getElementById('send-message-btn').addEventListener('click', handleSendMessage);
-    document.getElementById('message-input').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') handleSendMessage();
-    });
-
-    userSelector.addEventListener('change', (e) => {
-        const selectedId = e.target.value;
-        const selectedMember = allMembersData.find(m => m.id === selectedId);
-        if (selectedMember) {
-            currentUser = selectedMember;
-            localStorage.setItem('studyGroupCurrentUser', JSON.stringify(currentUser));
-        }
-    });
-
-    membersContainer.addEventListener('click', (e) => {
-        const memberCard = e.target.closest('[data-member-id]');
-        if (!memberCard) return;
-        const memberId = memberCard.dataset.memberId;
-
-        if (e.target.closest('.delete-member-btn')) {
-            handleDeleteMember(memberId);
-        } else if (e.target.closest('.add-goal-btn')) {
-            handleAddGoal(e);
-        } else if (e.target.matches('.goal-checkbox')) {
-            const goalItem = e.target.closest('.goal-item');
-            const { goalId, goalDate } = goalItem.dataset;
-            handleGoalCheckboxChange(e, memberId, goalDate, goalId);
-        } else if (e.target.closest('.delete-goal-btn')) {
-            const goalItem = e.target.closest('.goal-item');
-            const { goalId, goalDate } = goalItem.dataset;
-            handleDeleteGoal(memberId, goalDate, goalId);
-        }
-    });
-
-    membersContainer.addEventListener('change', (e) => {
-        if (e.target.matches('.member-date-picker')) {
-            const memberCard = e.target.closest('[data-member-id]');
-            const memberId = memberCard.dataset.memberId;
-            memberViewStates[memberId].date = e.target.value;
-            const memberData = allMembersData.find(m => m.id === memberId);
-            if (memberData) {
-                renderDailyView(memberCard, memberData, e.target.value);
-            }
-        }
-    });
-    
-    const membersQuery = query(collection(db, "members"));
-    onSnapshot(membersQuery, (snapshot) => {
-        allMembersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        snapshot.docChanges().forEach((change) => {
-            const memberData = { id: change.doc.id, ...change.doc.data() };
-            if (change.type === "added" || change.type === "modified") {
-                renderOrUpdateMemberCard(memberData);
-            }
-            if (change.type === "removed") {
-                removeMemberCard(memberData.id);
-            }
-        });
-        
-        const emptyState = document.getElementById('empty-state-members');
-        emptyState.classList.toggle('hidden', allMembersData.length > 0);
-
-        updateUserSelector();
-
-        const storedUser = localStorage.getItem('studyGroupCurrentUser');
-        const userExists = storedUser && allMembersData.some(m => m.id === JSON.parse(storedUser).id);
-        
-        if (userExists) {
-            currentUser = JSON.parse(storedUser);
-        } else if (allMembersData.length > 0) {
-            currentUser = allMembersData[0];
-            localStorage.setItem('studyGroupCurrentUser', JSON.stringify(currentUser));
-        } else {
-            currentUser = { id: null, name: null };
-            localStorage.removeItem('studyGroupCurrentUser');
-        }
-        updateUserSelector();
-    });
-
-    const messagesQuery = query(collection(db, "messages"), orderBy("timestamp", "asc"));
-    onSnapshot(messagesQuery, (snapshot) => {
-        const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderMessages(messages);
-    });
+  setupEventHandlers();
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById('loader').textContent = "Loading members..."; 
+      setupFirestoreListeners();
+    } else {
+      signInAnonymously(auth).catch((error) => {
+        console.error("Anonymous sign-in failed:", error);
+        document.getElementById('loader').textContent = "Connection failed. Please refresh.";
+      });
+    }
+  });
 }
 
-
-// =============================================================
-// APP START
-// =============================================================
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        main();
-    } else {
-        signInAnonymously(auth).catch((error) => {
-            console.error("Anonymous sign-in failed:", error);
-            alert("Could not connect to the service. Please check your internet connection and Firebase setup.");
-        });
-    }
-});
+main();
 </script>
+
 </body>
 </html>
