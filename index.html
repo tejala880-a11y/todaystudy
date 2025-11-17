@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tejal's Study Group - Upgraded Edition</title>
+<title> Study Group - Upgraded Edition</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
@@ -83,7 +83,7 @@
 <div class="container mx-auto max-w-7xl px-4 sm:px-6 py-8">
 
   <header class="text-center mb-8 p-6 md:p-8">
-    <h1 class="text-4xl md:text-5xl font-extrabold tracking-wide mb-2">Tejal's Study Group</h1>
+    <h1 class="text-4xl md:text-5xl font-extrabold tracking-wide mb-2">Study Group</h1>
     <p class="text-indigo-100 font-medium text-base md:text-lg mb-2">Upgraded for Maximum Productivity 🚀</p>
     <div class="text-sm text-indigo-200">Daily & Monthly Goals, Timers, and Messenger.</div>
   </header>
@@ -565,17 +565,36 @@ async function handleMemberEvents(e) {
   } catch (error) { console.error("Goal update failed: ", error); }
 }
 
+// =============================================================
+// --- CORRECTED FUNCTION ---
+// =============================================================
 async function updateAllMembersMonthlyTasks(monthStr, updateFn) {
     if (allMembersData.length === 0) return;
-    const sourceTasks = allMembersData[0]?.monthlyTasks?.[monthStr] || [];
-    const updatedTasks = updateFn(sourceTasks);
+
     const batch = writeBatch(db);
+    
+    // This function will now apply the update operation relative to *each member's*
+    // own data, instead of using member 0 as the single source of truth.
+    // This prevents one member's update from overwriting another's.
     allMembersData.forEach(member => {
         const ref = doc(db, "members", member.id);
+        
+        // Get *this specific member's* current task list from our local snapshot
+        const currentTasks = member.monthlyTasks?.[monthStr] || [];
+        
+        // Apply the update function (e.g., add task, delete task, update checkbox)
+        // to *this member's* specific list.
+        const updatedTasks = updateFn(currentTasks);
+        
+        // Write this member's *personally updated* list back to their doc.
         batch.update(ref, { [`monthlyTasks.${monthStr}`]: updatedTasks });
     });
+    
     await batch.commit();
 }
+// =============================================================
+// --- END OF FIX ---
+// =============================================================
 
 async function handleSharedMonthlyEvents(e) {
   const monthStr = getYearMonthString(calendarDate);
@@ -587,6 +606,7 @@ async function handleSharedMonthlyEvents(e) {
     const text = textInput.value.trim();
     if (!text || allMembersData.length === 0) return;
     const newMonthlyTask = { id: crypto.randomUUID(), subject: subjectInput.value.trim(), text, description: descInput.value.trim(), completedBy: {} };
+    // This now correctly adds the new task to *each member's* list
     await updateAllMembersMonthlyTasks(monthStr, (tasks) => [...tasks, newMonthlyTask]);
     subjectInput.value = ''; textInput.value = ''; descInput.value = '';
     return;
@@ -605,14 +625,25 @@ async function handleSharedMonthlyEvents(e) {
   if (e.target.matches('.monthly-goal-checkbox')) {
       const targetMemberId = e.target.dataset.memberId;
       const isChecked = e.target.checked;
+      // This now correctly updates the checkbox status across all members
       await updateAllMembersMonthlyTasks(monthStr, (tasks) => 
-        tasks.map(task => task.id === taskId ? { ...task, completedBy: { ...task.completedBy, [targetMemberId]: isChecked } } : task)
+        tasks.map(task => {
+            if (task.id === taskId) {
+                const updatedCompletedBy = { ...task.completedBy, [targetMemberId]: isChecked };
+                if (!isChecked) { // Handle unchecking
+                    delete updatedCompletedBy[targetMemberId];
+                }
+                return { ...task, completedBy: updatedCompletedBy };
+            }
+            return task;
+        })
       );
       return;
   }
   
   // =============================================================
   // CORRECTED LOGIC FOR COPY-TO-DAILY-BTN STARTS HERE
+  // (This logic was already correct and did not use the buggy function)
   // =============================================================
   if (e.target.closest('.copy-to-daily-btn')) {
     if (!currentMessengerId) {
@@ -706,6 +737,7 @@ async function handleSharedMonthlyEvents(e) {
 
   if (e.target.closest('.delete-goal-btn')) {
       if (!confirm("Are you sure you want to delete this group goal for everyone?")) return;
+      // This now correctly deletes the task from *each member's* list
       await updateAllMembersMonthlyTasks(monthStr, (tasks) => tasks.filter(t => t.id !== taskId));
       return;
   }
